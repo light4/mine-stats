@@ -1,0 +1,30 @@
+query UserInfo($login: String!) {
+  user(login: $login) {
+    name
+    login
+    contributionsCollection {
+      totalCommitContributions
+      restrictedContributionsCount
+    }
+    repositoriesContributedTo(
+      contributionTypes: [COMMIT, ISSUE, PULL_REQUEST, REPOSITORY]
+    ) {
+      totalCount
+    }
+    pullRequests {
+      totalCount
+    }
+    openIssues: issues(states: OPEN) {
+      totalCount
+    }
+    closedIssues: issues(states: CLOSED) {
+      totalCount
+    }
+    followers {
+      totalCount
+    }
+    repositories(ownerAffiliations: OWNER) {
+      totalCount
+    }
+  }
+}

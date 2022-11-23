@@ -1,0 +1,22 @@
+[package]
+name = "mine-stats"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0"
+askama = "0.11"
+axum = { version = "0.6.0-rc.5", features = ["headers", "http2"] }
+graphql_client = "0.11"
+hyper = "0.14"
+kdl = "4.6"
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.22", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.release]
+lto = "thin"
