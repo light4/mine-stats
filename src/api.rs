@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     pin::Pin,
     task::{Context, Poll},
@@ -8,7 +9,7 @@ use anyhow::Result;
 use askama::Template;
 use axum::{
     body::Body,
-    extract::{ConnectInfo, State},
+    extract::{ConnectInfo, Query, State},
     http::{Request, StatusCode},
     response::{Html, IntoResponse, Response},
     routing::get,
@@ -21,8 +22,6 @@ use crate::{
     config::{Config, ListenStack},
     github,
 };
-
-const GITHUB_USER: &str = "light4";
 
 pub async fn run(config: Config) {
     let localhost_v4 = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), config.listen_port);
@@ -111,25 +110,46 @@ async fn handler_404() -> impl IntoResponse {
     (StatusCode::NOT_FOUND, "nothing to see here")
 }
 
-async fn get_user_info(State(config): State<Config>) -> impl IntoResponse {
-    let client = github::build_client(&config.github_api_token).unwrap();
-    let variables = github::user_info::Variables {
-        login: GITHUB_USER.to_string(),
-    };
+async fn get_user_info(
+    Query(params): Query<HashMap<String, String>>,
+    State(config): State<Config>,
+) -> impl IntoResponse {
+    if params.get("user").is_none() {
+        return (StatusCode::NOT_FOUND, "nothing to see here");
+    }
 
+    let user = params.get("user").unwrap().to_owned();
+
+    if !config.allow_users.is_empty() && !config.allow_users.contains(&user) {
+        return (StatusCode::FORBIDDEN, "nothing to see here");
+    }
+
+    let client = github::build_client(&config.github_api_token).unwrap();
+    let variables = github::user_info::Variables { login: user };
     github::query_user_info(&client, variables).await.unwrap();
 
-    "get_user_info"
+    (StatusCode::OK, "get_user_info")
 }
 
-async fn get_top_langs(State(config): State<Config>) -> impl IntoResponse {
+async fn get_top_langs(
+    Query(params): Query<HashMap<String, String>>,
+    State(config): State<Config>,
+) -> impl IntoResponse {
+    if params.get("user").is_none() {
+        return (StatusCode::NOT_FOUND, "nothing to see here");
+    }
+
+    let user = params.get("user").unwrap().to_owned();
+
+    if !config.allow_users.is_empty() && !config.allow_users.contains(&user) {
+        return (StatusCode::FORBIDDEN, "nothing to see here");
+    }
+
     let client = github::build_client(&config.github_api_token).unwrap();
-    let variables = github::top_langs::Variables {
-        login: GITHUB_USER.to_string(),
-    };
+    let variables = github::top_langs::Variables { login: user };
     github::query_top_lang(&client, variables).await.unwrap();
 
-    "get_top_langs"
+    (StatusCode::OK, "get_top_langs")
 }
 
 struct CombinedIncoming {
