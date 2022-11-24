@@ -10,7 +10,7 @@ use askama::Template;
 use axum::{
     body::Body,
     extract::{ConnectInfo, Query, State},
-    http::{Request, StatusCode},
+    http::{header, Request, StatusCode},
     response::{Html, IntoResponse, Response},
     routing::get,
     Router,
@@ -19,6 +19,7 @@ use hyper::server::{accept::Accept, conn::AddrIncoming};
 use tracing::{info, trace};
 
 use crate::{
+    cards::form_stats_card,
     config::{Config, ListenStack},
     github,
 };
@@ -113,22 +114,29 @@ async fn handler_404() -> impl IntoResponse {
 async fn get_user_info(
     Query(params): Query<HashMap<String, String>>,
     State(config): State<Config>,
-) -> impl IntoResponse {
+) -> Response {
+    dbg!(&params);
     if params.get("user").is_none() {
-        return (StatusCode::NOT_FOUND, "nothing to see here");
+        return (StatusCode::NOT_FOUND, "no user").into_response();
     }
 
     let user = params.get("user").unwrap().to_owned();
 
     if !config.allow_users.is_empty() && !config.allow_users.contains(&user) {
-        return (StatusCode::FORBIDDEN, "nothing to see here");
+        dbg!(&config.allow_users);
+        return (StatusCode::FORBIDDEN, "user not in allow list").into_response();
     }
 
     let client = github::build_client(&config.github_api_token).unwrap();
     let variables = github::user_info::Variables { login: user };
     github::query_user_info(&client, variables).await.unwrap();
 
-    (StatusCode::OK, "get_user_info")
+    (
+        StatusCode::OK,
+        [(header::CONTENT_TYPE, "image/svg+xml; charset=utf-8")],
+        form_stats_card(false).to_string(),
+    )
+        .into_response()
 }
 
 async fn get_top_langs(

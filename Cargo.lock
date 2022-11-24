@@ -710,6 +710,7 @@ dependencies = [
  "kdl",
  "reqwest",
  "serde",
+ "svg",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -1161,6 +1162,12 @@ dependencies = [
  "libc",
  "winapi",
 ]
+
+[[package]]
+name = "svg"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a6e6ff893392e6a1eb94a210562432c6380cebf09d30962a012a655f7dde2ff8"
 
 [[package]]
 name = "syn"
