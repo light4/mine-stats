@@ -36,9 +36,7 @@ pub fn create_text_node(show_icons: bool) -> impl Node {
         .set("data-testid", "id")
         .add(node::Text::new("kValue"));
 
-    let g = g.add(text).add(text_2);
-
-    g
+    g.add(text).add(text_2)
 }
 
 pub fn form_stats_card(hide_rank: bool) -> Document {
@@ -77,10 +75,8 @@ pub fn form_stats_card(hide_rank: bool) -> Document {
             .add(g_rank_text)
     };
 
-    let card = CardBuilder::default()
+    CardBuilder::default()
         .with_title("test title")
         .build()
-        .render(rank_circle);
-
-    card
+        .render(rank_circle)
 }

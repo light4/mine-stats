@@ -55,15 +55,13 @@ impl Config {
                 .unwrap_or(8080),
             github_api_token: doc
                 .get_arg("github_api_token")
-                .map(|i| i.as_string())
-                .flatten()
+                .and_then(|i| i.as_string())
                 .map(|i| i.to_string())
                 .expect("must provide github api token"),
             allow_users: doc
                 .get_args("allow_users")
                 .into_iter()
-                .map(|i| i.as_string())
-                .flatten()
+                .filter_map(|i| i.as_string())
                 .map(|i| i.to_string())
                 .collect(),
         };
