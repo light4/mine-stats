@@ -1,7 +1,7 @@
 use svg::{
     node::{
         self,
-        element::{Description, Group, Rectangle, Style, Title},
+        element::{Description, Element, Group, Path, Rectangle, Style, Text, Title, SVG},
     },
     Document, Node,
 };
@@ -23,6 +23,11 @@ pub struct Card {
     border_radius: f32,
     colors: Color,
     title: String,
+    desc: String,
+    hide_border: bool,
+    hide_title: bool,
+    padding_x: usize,
+    padding_y: usize,
 }
 
 #[derive(Clone)]
@@ -38,6 +43,10 @@ impl Default for CardBuilder {
                 width: 100,
                 height: 100,
                 border_radius: 4.5,
+                hide_border: false,
+                hide_title: false,
+                padding_x: 25,
+                padding_y: 35,
                 ..Default::default()
             },
         }
@@ -46,8 +55,26 @@ impl Default for CardBuilder {
 
 impl CardBuilder {
     #[inline]
+    pub fn with_width(mut self, width: u16) -> Self {
+        self.inner.width = width;
+        self
+    }
+
+    #[inline]
+    pub fn with_height(mut self, height: u16) -> Self {
+        self.inner.height = height;
+        self
+    }
+
+    #[inline]
     pub fn with_title<T: Into<String>>(mut self, title: T) -> Self {
         self.inner.title = title.into();
+        self
+    }
+
+    #[inline]
+    pub fn with_desc<T: Into<String>>(mut self, desc: T) -> Self {
+        self.inner.desc = desc.into();
         self
     }
 
@@ -58,13 +85,47 @@ impl CardBuilder {
 }
 
 impl Card {
+    pub fn render_title(&self, title_prefix_icon: Path) -> Group {
+        let title = Text::new()
+            .set("x", 0)
+            .set("y", 0)
+            .set("class", "header")
+            .set("data-testid", "header")
+            .add(node::Text::new(&self.title));
+
+        let prefix_icon = SVG::new()
+            .set("class", "icon")
+            .set("x", 0)
+            .set("y", -13)
+            .set("viewBox", "0 0 16 16")
+            .set("version", "1.1")
+            .set("width", 16)
+            .set("height", 16)
+            .add(title_prefix_icon);
+
+        let mut g = Group::new().set("data-testid", "card-title").set(
+            "transform",
+            format!("translate({}, {})", self.padding_x, self.padding_y),
+        );
+
+        let items: Vec<Element> = vec![prefix_icon.into(), title.into()];
+        for item in flex_layout(items, 25, "") {
+            g.append(item);
+        }
+        g
+    }
+
     pub fn render<I>(&self, body: I) -> Document
     where
         I: IntoIterator,
         I::Item: Node,
     {
-        let title = Title::new().add(node::Text::new(&self.title));
-        let desc = Description::new().add(node::Text::new("description"));
+        let title = Title::new()
+            .set("id", "titleId")
+            .add(node::Text::new(&self.title));
+        let desc = Description::new()
+            .set("id", "descId")
+            .add(node::Text::new(&self.desc));
         let style = Style::new(
             r#"
           .header {
@@ -86,20 +147,26 @@ impl Card {
         "#,
         );
         let rect = Rectangle::new()
+            .set("data-testid", "card-bg")
             .set("x", 0.5)
             .set("y", 0.5)
             .set("rx", self.border_radius)
             .set("height", "99%")
             .set("stroke", "red")
             .set("width", self.width - 1)
-            .set("fill", "url(#gradient)")
-            .set("stroke-opacity", "${this.hideBorder ? 0 : 1}");
+            .set("fill", "#282c34")
+            .set("stroke-opacity", if self.hide_border { 0 } else { 1 });
 
         let mut g = Group::new().set("data-testid", "main-card-body").set(
             "transform",
-            "translate(0, ${
-                this.hideTitle ? this.paddingX : this.paddingY + 20
-              })",
+            format!(
+                "translate(0, {})",
+                if self.hide_title {
+                    self.padding_x
+                } else {
+                    self.padding_y + 20
+                }
+            ),
         );
         for i in body {
             g.append(i);
@@ -109,10 +176,14 @@ impl Card {
             .set("width", self.width)
             .set("height", self.height)
             .set("viewBox", (0, 0, self.width, self.height))
+            .set("fill", "none")
+            .set("role", "img")
+            .set("aria-labelledby", "descId")
             .add(title)
             .add(desc)
             .add(style)
             .add(rect)
+            .add(self.render_title(icons::Icon::Contribs.svg_path()))
             .add(g);
 
         info!("{}", document.to_string());
@@ -121,7 +192,10 @@ impl Card {
     }
 }
 
-pub fn flex_layout(items: Vec<Group>, gap: usize, direction: &str) -> Vec<Group> {
+pub fn flex_layout<T>(items: Vec<T>, gap: usize, direction: &str) -> Vec<Group>
+where
+    T: Into<Element>,
+{
     let mut last_size = 0;
     // filter() for filtering out empty strings
     items
@@ -138,7 +212,7 @@ pub fn flex_layout(items: Vec<Group>, gap: usize, direction: &str) -> Vec<Group>
                 }
             };
             last_size += size + gap;
-            Group::new().set("transform", transform).add(item)
+            Group::new().set("transform", transform).add(item.into())
         })
         .collect()
 }

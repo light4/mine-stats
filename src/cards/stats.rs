@@ -7,40 +7,66 @@ use svg::{
 };
 
 use super::{flex_layout, icons::*, CardBuilder};
+use crate::github::UserGithubStats;
 
-pub fn create_text_node(icon: &Icon, show_icons: bool) -> Group {
-    let icon_svg = SVG::new()
-        .set("data-testid", "icon")
-        .set("class", "icon")
-        .set("viewBox", (0, 0, 16, 16))
-        .set("version", "1.1")
-        .set("width", 16)
-        .set("height", 16)
-        .add(icon.svg_path());
-
-    let mut g = Group::new()
-        .set("class", "stagger")
-        .set("style", "animation-delay: ${staggerDelay}ms")
-        .set("transform", "translate(25, 0)");
-    if show_icons {
-        g = g.add(icon_svg);
-    }
-
-    let text = Text::new()
-        .set("class", r#"stat ${bold ? " bold" : "not_bold"}"#)
-        .set("y", 12.5);
-
-    let text_2 = Text::new()
-        .set("class", r#"stat ${bold ? " bold" : "not_bold"}"#)
-        .set("x", "${(showIcons ? 140 : 120) + shiftValuePos}")
-        .set("y", 12.5)
-        .set("data-testid", "id")
-        .add(node::Text::new("kValue"));
-
-    g.add(text).add(text_2)
+#[derive(Debug, Clone)]
+pub struct StatItem {
+    icon: Icon,
+    label: String,
+    value: i64,
 }
 
-pub fn form_stats_card(hide_rank: bool, show_icons: bool) -> Document {
+impl StatItem {
+    pub fn new(icon: Icon, label: &str, value: i64) -> Self {
+        Self {
+            icon,
+            label: label.to_string(),
+            value,
+        }
+    }
+
+    pub fn create_text_node(&self, index: usize, show_icons: bool, bold: bool) -> Group {
+        let stagger_delay = (index + 3) * 150;
+
+        let icon_svg = SVG::new()
+            .set("data-testid", "icon")
+            .set("class", "icon")
+            .set("viewBox", (0, 0, 16, 16))
+            .set("version", "1.1")
+            .set("width", 16)
+            .set("height", 16)
+            .add(self.icon.svg_path());
+
+        let mut g = Group::new()
+            .set("class", "stagger")
+            .set("style", format!("animation-delay: {stagger_delay}ms"))
+            .set("transform", "translate(25, 0)");
+        if show_icons {
+            // label offset
+            g.append(icon_svg);
+        }
+
+        let mut text = Text::new()
+            .set("class", r#"stat ${bold ? " bold" : "not_bold"}"#)
+            .set("y", 12.5)
+            .add(node::Text::new(&self.label));
+        if show_icons {
+            text = text.set("x", 25);
+        }
+
+        let text_class = if bold { "stat bold" } else { "stat not_bold" };
+        let text_x = if show_icons { 140 + 79 } else { 120 + 79 };
+        let text_2 = Text::new()
+            .set("x", text_x)
+            .set("y", 12.5)
+            .set("class", text_class)
+            .set("data-testid", "id")
+            .add(node::Text::new(format!("{}", self.value)));
+        g.add(text).add(text_2)
+    }
+}
+
+pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: bool) -> Document {
     let rank_level = "A+";
 
     let rank_circle = if hide_rank {
@@ -76,25 +102,36 @@ pub fn form_stats_card(hide_rank: bool, show_icons: bool) -> Document {
             .add(g_rank_text)
     };
 
-    let stat_items = create_stat_items(show_icons);
+    let stat_items = create_stat_items(&github, show_icons);
 
     let body = vec![
         rank_circle.get_inner().to_owned(),
         stat_items.get_inner().to_owned(),
     ];
     CardBuilder::default()
-        .with_title("test title")
+        .with_width(495)
+        .with_height(195)
+        .with_title(format!("{}'s GitHub Stats", &github.name))
+        .with_desc("Total Stars Earned: 37, Total Commits in 2022 : 37, Total PRs: 77, Total Issues: 29, Contributed to (last year): 20")
         .build()
         .render(body)
 }
 
-pub fn create_stat_items(show_icons: bool) -> SVG {
+pub fn create_stat_items(github: &UserGithubStats, show_icons: bool) -> SVG {
     let mut stat_items = SVG::new().set("x", 0).set("y", 0);
 
-    let items = Icon::all()
-        .iter()
-        .map(|i| create_text_node(i, show_icons))
-        .collect();
+    let mut items = vec![];
+    for (idx, icon) in Icon::all().iter().enumerate() {
+        let stat_item = match icon {
+            Icon::Star => StatItem::new(*icon, "Total Stars Earned: ", github.stars),
+            Icon::Commits => StatItem::new(*icon, "Total Commits (2022): ", github.commits),
+            Icon::Prs => StatItem::new(*icon, "Total PRs: ", github.prs),
+            Icon::Issues => StatItem::new(*icon, "Total Issues: ", github.issues),
+            Icon::Contribs => StatItem::new(*icon, "Contributed to (last year): ", github.contribs),
+            _ => continue,
+        };
+        items.push(stat_item.create_text_node(idx, show_icons, true))
+    }
 
     for item in flex_layout(items, 10, "column") {
         stat_items.append(item);
