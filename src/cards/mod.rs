@@ -7,6 +7,7 @@ use svg::{
 };
 use tracing::info;
 
+mod icons;
 mod stats;
 mod top_langs;
 
