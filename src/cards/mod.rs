@@ -14,6 +14,7 @@ mod theme;
 mod top_langs;
 
 pub use stats::form_stats_card;
+use theme::Theme;
 
 #[derive(Debug, Clone, Default)]
 pub struct Color {}
@@ -23,7 +24,7 @@ pub struct Card {
     width: u16,
     height: u16,
     border_radius: f32,
-    colors: Color,
+    theme: Theme,
     title: String,
     desc: String,
     hide_border: bool,
@@ -146,8 +147,8 @@ impl Card {
           {}
           {}
         "#,
-            theme::DEFAULT.title,
-            style::get_styles(theme::DEFAULT, true, 100. - 60.),
+            self.theme.title,
+            style::get_styles(&self.theme, true, 100. - 60.),
             style::get_animations(),
             if self.animations {
                 r#"* { animation-duration: 0s !important; animation-delay: 0s !important; }"#
@@ -161,9 +162,9 @@ impl Card {
             .set("y", 0.5)
             .set("rx", self.border_radius)
             .set("height", "99%")
-            .set("stroke", theme::DEFAULT.border.as_ref())
+            .set("stroke", self.theme.border.as_ref())
             .set("width", self.width - 1)
-            .set("fill", theme::DEFAULT.bg.as_ref())
+            .set("fill", self.theme.bg.as_ref())
             .set("stroke-opacity", if self.hide_border { 0 } else { 1 });
 
         let mut g = Group::new().set("data-testid", "main-card-body").set(

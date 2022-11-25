@@ -20,3 +20,9 @@ pub const DEFAULT: Theme = Theme {
     border: Cow::Borrowed("#e4e2e2"),
     ring: Cow::Borrowed("#2f80ed"),
 };
+
+impl Default for Theme {
+    fn default() -> Self {
+        DEFAULT
+    }
+}

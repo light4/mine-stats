@@ -23,7 +23,7 @@ pub fn get_animations() -> &'static str {
     "#
 }
 
-pub fn get_styles(theme: Theme, show_icons: bool, progress: f32) -> String {
+pub fn get_styles(theme: &Theme, show_icons: bool, progress: f32) -> String {
     format!(
         r#"
       .stat {{
