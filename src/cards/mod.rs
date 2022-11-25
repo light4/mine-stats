@@ -9,6 +9,8 @@ use tracing::info;
 
 mod icons;
 mod stats;
+mod style;
+mod theme;
 mod top_langs;
 
 pub use stats::form_stats_card;
@@ -28,6 +30,7 @@ pub struct Card {
     hide_title: bool,
     padding_x: usize,
     padding_y: usize,
+    animations: bool,
 }
 
 #[derive(Clone)]
@@ -47,6 +50,7 @@ impl Default for CardBuilder {
                 hide_title: false,
                 padding_x: 25,
                 padding_y: 35,
+                animations: true,
                 ..Default::default()
             },
         }
@@ -126,35 +130,40 @@ impl Card {
         let desc = Description::new()
             .set("id", "descId")
             .add(node::Text::new(&self.desc));
-        let style = Style::new(
+        let style = Style::new(format!(
             r#"
-          .header {
+          .header {{
             font: 600 18px 'Segoe UI', Ubuntu, Sans-Serif;
-            fill: ${this.colors.titleColor};
+            fill: {};
             animation: fadeInAnimation 0.8s ease-in-out forwards;
-          }
-          @supports(-moz-appearance: auto) {
+          }}
+          @supports(-moz-appearance: auto) {{
             /* Selector detects Firefox */
-            .header { font-size: 15.5px; }
-          }
-          ${this.css}
-          ${process.env.NODE_ENV === "test" ? "" : getAnimations()}
-          ${
-            this.animations === false
-              ? `* { animation-duration: 0s !important; animation-delay: 0s !important; }`
-              : ""
-          }
+            .header {{ font-size: 15.5px; }}
+          }}
+          {}
+
+          {}
+          {}
         "#,
-        );
+            theme::DEFAULT.title,
+            style::get_styles(theme::DEFAULT, true, 100. - 60.),
+            style::get_animations(),
+            if self.animations {
+                r#"* { animation-duration: 0s !important; animation-delay: 0s !important; }"#
+            } else {
+                ""
+            }
+        ));
         let rect = Rectangle::new()
             .set("data-testid", "card-bg")
             .set("x", 0.5)
             .set("y", 0.5)
             .set("rx", self.border_radius)
             .set("height", "99%")
-            .set("stroke", "red")
+            .set("stroke", theme::DEFAULT.border.as_ref())
             .set("width", self.width - 1)
-            .set("fill", "#282c34")
+            .set("fill", theme::DEFAULT.bg.as_ref())
             .set("stroke-opacity", if self.hide_border { 0 } else { 1 });
 
         let mut g = Group::new().set("data-testid", "main-card-body").set(
@@ -206,9 +215,9 @@ where
             let size = 0;
             let transform = {
                 if direction == "column" {
-                    format!("translate(0, ${last_size})")
+                    format!("translate(0, {last_size})")
                 } else {
-                    format!("translate(${last_size}, 0)")
+                    format!("translate({last_size}, 0)")
                 }
             };
             last_size += size + gap;

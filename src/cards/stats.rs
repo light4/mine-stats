@@ -46,15 +46,15 @@ impl StatItem {
             g.append(icon_svg);
         }
 
+        let text_class = if bold { "stat bold" } else { "stat not_bold" };
         let mut text = Text::new()
-            .set("class", r#"stat ${bold ? " bold" : "not_bold"}"#)
+            .set("class", text_class)
             .set("y", 12.5)
             .add(node::Text::new(&self.label));
         if show_icons {
             text = text.set("x", 25);
         }
 
-        let text_class = if bold { "stat bold" } else { "stat not_bold" };
         let text_x = if show_icons { 140 + 79 } else { 120 + 79 };
         let text_2 = Text::new()
             .set("x", text_x)
@@ -68,6 +68,8 @@ impl StatItem {
 
 pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: bool) -> Document {
     let rank_level = "A+";
+    let width = 495;
+    let height = 195;
 
     let rank_circle = if hide_rank {
         Group::new()
@@ -91,11 +93,19 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
             .add(node::Text::new(rank_level));
         let g_rank_text = Group::new().set("class", "rank-text").add(rank_text);
 
+        let rank_x_translation = {
+            if width < 450 {
+                width - 95 + (45 * (450 - 340)) / 110
+            } else {
+                width - 95
+            }
+        };
+
         Group::new()
             .set("data-testid", "rank-circle")
             .set(
                 "transform",
-                "translate(${calculateRankXTranslation()}, ${height / 2 - 50})",
+                format!("translate({}, {}", rank_x_translation, height / 2 - 50),
             )
             .add(rank_circle_rim)
             .add(rank_circle)
@@ -109,8 +119,8 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
         stat_items.get_inner().to_owned(),
     ];
     CardBuilder::default()
-        .with_width(495)
-        .with_height(195)
+        .with_width(width)
+        .with_height(height)
         .with_title(format!("{}'s GitHub Stats", &github.name))
         .with_desc("Total Stars Earned: 37, Total Commits in 2022 : 37, Total PRs: 77, Total Issues: 29, Contributed to (last year): 20")
         .build()
