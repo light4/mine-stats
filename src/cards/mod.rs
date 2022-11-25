@@ -58,9 +58,10 @@ impl CardBuilder {
 }
 
 impl Card {
-    pub fn render<T>(&self, body: T) -> Document
+    pub fn render<I>(&self, body: I) -> Document
     where
-        T: Node,
+        I: IntoIterator,
+        I::Item: Node,
     {
         let title = Title::new().add(node::Text::new(&self.title));
         let desc = Description::new().add(node::Text::new("description"));
@@ -94,15 +95,15 @@ impl Card {
             .set("fill", "url(#gradient)")
             .set("stroke-opacity", "${this.hideBorder ? 0 : 1}");
 
-        let g = Group::new()
-            .set("data-testid", "main-card-body")
-            .set(
-                "transform",
-                "translate(0, ${
+        let mut g = Group::new().set("data-testid", "main-card-body").set(
+            "transform",
+            "translate(0, ${
                 this.hideTitle ? this.paddingX : this.paddingY + 20
               })",
-            )
-            .add(body);
+        );
+        for i in body {
+            g.append(i);
+        }
 
         let document = Document::new()
             .set("width", self.width)
@@ -118,4 +119,26 @@ impl Card {
 
         document
     }
+}
+
+pub fn flex_layout(items: Vec<Group>, gap: usize, direction: &str) -> Vec<Group> {
+    let mut last_size = 0;
+    // filter() for filtering out empty strings
+    items
+        .into_iter()
+        .enumerate()
+        .map(|(_i, item)| {
+            // let size = sizes.get(i).copied().unwrap_or(0);
+            let size = 0;
+            let transform = {
+                if direction == "column" {
+                    format!("translate(0, ${last_size})")
+                } else {
+                    format!("translate(${last_size}, 0)")
+                }
+            };
+            last_size += size + gap;
+            Group::new().set("transform", transform).add(item)
+        })
+        .collect()
 }

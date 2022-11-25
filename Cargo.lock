@@ -708,6 +708,7 @@ dependencies = [
  "graphql_client",
  "hyper",
  "kdl",
+ "once_cell",
  "reqwest",
  "serde",
  "svg",

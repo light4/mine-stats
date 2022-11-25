@@ -134,7 +134,7 @@ async fn get_user_info(
     (
         StatusCode::OK,
         [(header::CONTENT_TYPE, "image/svg+xml; charset=utf-8")],
-        form_stats_card(false).to_string(),
+        form_stats_card(false, true).to_string(),
     )
         .into_response()
 }
