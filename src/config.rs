@@ -1,3 +1,5 @@
+//! app config
+
 use std::{fmt, path::Path};
 
 use anyhow::Result;
@@ -6,10 +8,15 @@ use tokio::fs::read_to_string;
 
 #[derive(Clone)]
 pub struct Config {
+    /// default both(ipv4 and ipv6)
     pub listen_stack: ListenStack,
+    /// default 8080
     pub listen_port: u16,
+    /// monitor on systemd services
+    pub services: Vec<String>,
+    /// use to show github stats
     pub github_api_token: String,
-    // allow all users if empty
+    /// allow query github stats user list, allow any if empty
     pub allow_users: Vec<String>,
 }
 
@@ -39,7 +46,7 @@ impl Config {
             let stack_str = doc
                 .get_arg("listen_stack")
                 .map(|i| i.as_string().unwrap())
-                .unwrap_or("ipv4");
+                .unwrap_or("both");
             match stack_str {
                 "ipv4" => ListenStack::V4,
                 "ipv6" => ListenStack::V6,
@@ -53,6 +60,11 @@ impl Config {
                 .get_arg("listen_port")
                 .map(|i| i.as_i64().unwrap() as u16)
                 .unwrap_or(8080),
+            services: doc
+                .get_args("services")
+                .into_iter()
+                .map(|i| i.as_string().unwrap().to_owned())
+                .collect(),
             github_api_token: doc
                 .get_arg("github_api_token")
                 .and_then(|i| i.as_string())

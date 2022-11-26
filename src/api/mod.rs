@@ -1,5 +1,6 @@
+//! contains all api services
+
 use std::{
-    collections::HashMap,
     net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     pin::Pin,
     task::{Context, Poll},
@@ -8,27 +9,29 @@ use std::{
 use anyhow::Result;
 use askama::Template;
 use axum::{
-    body::Body,
-    extract::{ConnectInfo, FromRef, Query, State},
-    http::{header, Request, StatusCode},
+    extract::FromRef,
+    http::StatusCode,
     response::{Html, IntoResponse, Response},
     routing::get,
     Router,
 };
 use hyper::server::{accept::Accept, conn::AddrIncoming};
-use tracing::{info, trace};
+use tracing::info;
+
+mod cache;
+mod ip;
+mod stats;
+mod status;
 
 use crate::{
-    cache::{self, SharedCache, TIMEOUT_SECS},
-    cards::form_stats_card,
+    cache::SharedCache,
     config::{Config, ListenStack},
-    github::{self, get_user_github_stats, stats::UserGithubStats},
 };
 
 #[derive(Debug, Clone, FromRef)]
 struct AppState {
     config: Config,
-    cache: cache::SharedCache,
+    cache: SharedCache,
 }
 
 pub async fn run(config: Config) {
@@ -42,13 +45,14 @@ pub async fn run(config: Config) {
 
     let app_state = AppState {
         config,
-        cache: cache::SharedCache::default(),
+        cache: SharedCache::default(),
     };
     // build our application with a route
     let app = Router::new()
-        .route("/ip", get(get_ip))
-        .route("/stats", get(get_user_info))
-        .route("/stats/top-langs", get(get_top_langs))
+        .route("/status", get(status::get_status))
+        .route("/ip", get(ip::get_ip))
+        .route("/stats", get(stats::get_user_stats))
+        .route("/stats/top-langs", get(stats::get_top_langs))
         .route("/cache/keys", get(cache::list_keys_api))
         // add a fallback service for handling routes to unknown paths
         .fallback(handler_404)
@@ -104,86 +108,8 @@ where
     }
 }
 
-async fn get_ip(
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
-    req: Request<Body>,
-) -> impl IntoResponse {
-    trace!(?req);
-    trace!(?addr);
-    let req_ip_str = addr.ip().to_string();
-    let ip = req
-        .headers()
-        .get("X-Forwarded-For")
-        .map(|i| i.to_str().unwrap())
-        .unwrap_or(&req_ip_str);
-    ip.to_string()
-}
-
 async fn handler_404() -> impl IntoResponse {
     (StatusCode::NOT_FOUND, "nothing to see here")
-}
-
-async fn get_user_info(
-    Query(params): Query<HashMap<String, String>>,
-    State(config): State<Config>,
-    State(db): State<SharedCache>,
-) -> Response {
-    if params.get("user").is_none() {
-        return (StatusCode::NOT_FOUND, "no user").into_response();
-    }
-
-    let user = params.get("user").unwrap().to_owned();
-
-    if !config.allow_users.is_empty() && !config.allow_users.contains(&user) {
-        return (StatusCode::FORBIDDEN, "user not in allow list").into_response();
-    }
-
-    let cached_stats: Option<UserGithubStats> = cache::cache_get(&db, &user);
-    let github_stats = if let Some(stats) = cached_stats {
-        if stats._time.elapsed().unwrap() > TIMEOUT_SECS {
-            let new_stats = get_user_github_stats(&config.github_api_token, &user).await;
-            cache::cache_set(db, &user, new_stats.clone());
-            info!("update github stats cache: {}", &user);
-            new_stats
-        } else {
-            info!("get github stats cache: {}", &user);
-            stats
-        }
-    } else {
-        let new_stats = get_user_github_stats(&config.github_api_token, &user).await;
-        cache::cache_set(db, &user, new_stats.clone());
-        info!("set github stats cache: {}", &user);
-        new_stats
-    };
-    info!("{:?}", github_stats);
-
-    (
-        StatusCode::OK,
-        [(header::CONTENT_TYPE, "image/svg+xml; charset=utf-8")],
-        form_stats_card(github_stats, false, true).to_string(),
-    )
-        .into_response()
-}
-
-async fn get_top_langs(
-    Query(params): Query<HashMap<String, String>>,
-    State(config): State<Config>,
-) -> impl IntoResponse {
-    if params.get("user").is_none() {
-        return (StatusCode::NOT_FOUND, "nothing to see here");
-    }
-
-    let user = params.get("user").unwrap().to_owned();
-
-    if !config.allow_users.is_empty() && !config.allow_users.contains(&user) {
-        return (StatusCode::FORBIDDEN, "nothing to see here");
-    }
-
-    let client = github::build_client(&config.github_api_token).unwrap();
-    let variables = github::top_langs::Variables { login: user };
-    github::query_top_lang(&client, variables).await.unwrap();
-
-    (StatusCode::OK, "get_top_langs")
 }
 
 struct CombinedIncoming {

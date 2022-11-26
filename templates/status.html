@@ -1,0 +1,40 @@
+<html>
+  <head> </head>
+  <body>
+    <div>
+      <h1>Hello there!</h1>
+
+      <h2>Basic Info</h2>
+      <ul>
+        <li>Hostname: {{ hostname|e }}</li>
+        <li>Uname: {{ uname|e }}</li>
+        <li>Uptime: {{ uptime|e }}</li>
+      </ul>
+
+      <h2>Services</h2>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>name</th>
+            <th>status</th>
+            <th>output</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for service in services %}
+          <tr>
+            <td>{{ service.name|e }}</td>
+            <td>{{ service.status|e }}</td>
+            <td>
+              <details>
+                <summary>{{ service.output|truncate(50) }}</summary>
+                <code><pre>{{ service.output|truncate(500)|indent(2) }}</pre></code>
+              </details>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

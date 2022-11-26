@@ -1,3 +1,6 @@
+//! save cached data
+//! use `bincode` to encode/decode
+
 use std::{
     any::type_name,
     collections::HashMap,
@@ -5,11 +8,9 @@ use std::{
     time::Duration,
 };
 
-use axum::{extract::State, response::IntoResponse, Json};
-use serde_json::json;
-
 pub const TIMEOUT_SECS: Duration = Duration::from_secs(60 * 60);
 
+/// TODO: need clean up expired cache
 pub type SharedCache = Arc<RwLock<CacheStore>>;
 
 #[derive(Default, Debug)]
@@ -44,12 +45,4 @@ pub fn list_keys(cache: &SharedCache) -> Vec<String> {
     db.keys()
         .map(|key| key.to_string())
         .collect::<Vec<String>>()
-}
-
-pub async fn list_keys_api(State(cache): State<SharedCache>) -> impl IntoResponse {
-    let keys = list_keys(&cache);
-    Json(json!({
-        "items": keys,
-        "count": keys.len(),
-    }))
 }
