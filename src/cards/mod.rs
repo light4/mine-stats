@@ -159,9 +159,9 @@ impl Card {
             style::get_styles(&self.theme, true, 100. - 60.),
             style::get_animations(),
             if self.animations {
-                r#"* { animation-duration: 0s !important; animation-delay: 0s !important; }"#
-            } else {
                 ""
+            } else {
+                r#"* { animation-duration: 0s !important; animation-delay: 0s !important; }"#
             }
         ));
         let rect = Rectangle::new()
