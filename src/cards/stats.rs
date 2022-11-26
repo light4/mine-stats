@@ -1,3 +1,4 @@
+use chrono::{Datelike, Utc};
 use svg::{
     node::{
         self,
@@ -17,10 +18,10 @@ pub struct StatItem {
 }
 
 impl StatItem {
-    pub fn new(icon: Icon, label: &str, value: i64) -> Self {
+    pub fn new<T: Into<String>>(icon: Icon, label: T, value: i64) -> Self {
         Self {
             icon,
-            label: label.to_string(),
+            label: label.into(),
             value,
         }
     }
@@ -156,12 +157,21 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
         .render(body)
 }
 
+#[inline]
+fn current_year() -> i32 {
+    Utc::now().year()
+}
+
 pub fn get_stat_collections(github: &UserGithubStats) -> Vec<StatItem> {
     let mut result = vec![];
     for icon in Icon::all() {
         let item = match icon {
             Icon::Star => StatItem::new(icon, "Total Stars Earned: ", github.stars),
-            Icon::Commits => StatItem::new(icon, "Total Commits (2022): ", github.commits),
+            Icon::Commits => StatItem::new(
+                icon,
+                format!("Total Commits ({}): ", current_year()),
+                github.commits,
+            ),
             Icon::Prs => StatItem::new(icon, "Total PRs: ", github.prs),
             Icon::Issues => StatItem::new(icon, "Total Issues: ", github.issues),
             Icon::Contribs => StatItem::new(icon, "Contributed to (last year): ", github.contribs),
