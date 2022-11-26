@@ -1,3 +1,5 @@
+use tracing::trace;
+
 use super::{build_client, query_user_info, query_user_repos, user_info, user_repos};
 
 #[derive(Debug, Clone, Default)]
@@ -48,7 +50,8 @@ impl UserGithubStats {
             + self.followers as f64 * FOLLOWERS_OFFSET
             + self.repos as f64 * REPO_OFFSET)
             / 100.;
-        let normalized_score = normalcdf(score, TOTAL_VALUES as f64, ALL_OFFSETS) * 100;
+        let normalized_score =
+            (normalcdf(score, TOTAL_VALUES as f64, ALL_OFFSETS) * 100.).round() as u8;
 
         let level = match normalized_score {
             n if n < RANK_S_VALUE => "S+",
@@ -69,7 +72,7 @@ impl UserGithubStats {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Rank {
     pub level: String,
     pub score: u8,
@@ -84,7 +87,7 @@ impl Default for Rank {
     }
 }
 
-fn normalcdf(mean: f64, sigma: f64, to: f64) -> u8 {
+fn normalcdf(mean: f64, sigma: f64, to: f64) -> f64 {
     let z = (to - mean) / (2. * sigma * sigma).sqrt();
     let t = 1. / (1. + 0.3275911 * z.abs());
     let a1 = 0.254_829_592;
@@ -94,7 +97,7 @@ fn normalcdf(mean: f64, sigma: f64, to: f64) -> u8 {
     let a5 = 1.061_405_429;
     let erf = 1. - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * (-z * z).exp();
 
-    ((1. / 2.) * (1. + z.signum() * erf)) as u8
+    (1. / 2.) * (1. + z.signum() * erf)
 }
 
 async fn fetch_total_stars(token: &str, user: &str, repo_to_hide: Vec<String>) -> i64 {
@@ -115,7 +118,7 @@ async fn fetch_total_stars(token: &str, user: &str, repo_to_hide: Vec<String>) -
             for inner_node in inner_nodes {
                 if inner_node.is_some() {
                     let real_node = inner_node.unwrap();
-                    if real_node.stargazers.total_count as usize <= 0 {
+                    if real_node.stargazers.total_count as usize > 0 {
                         nodes.push(real_node)
                     }
                 }
@@ -127,7 +130,7 @@ async fn fetch_total_stars(token: &str, user: &str, repo_to_hide: Vec<String>) -
 
     nodes
         .iter()
-        .filter(|i| repo_to_hide.contains(&i.name))
+        .filter(|i| !repo_to_hide.contains(&i.name))
         .map(|i| i.stargazers.total_count)
         .sum()
 }
@@ -141,6 +144,7 @@ pub async fn get_user_github_stats(token: &str, username: &str) -> UserGithubSta
     let user = data.user.unwrap();
 
     let stars = fetch_total_stars(token, username, vec![]).await;
+    trace!("total_stars: {}", stars);
 
     let mut stats = UserGithubStats {
         login: user.login.clone(),
@@ -156,4 +160,31 @@ pub async fn get_user_github_stats(token: &str, username: &str) -> UserGithubSta
     };
     stats.update_rank();
     stats
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_calculate_rank() {
+        let stats = UserGithubStats {
+            commits: 100,
+            repos: 5,
+            followers: 100,
+            contribs: 61,
+            stars: 400,
+            prs: 300,
+            issues: 200,
+            ..Default::default()
+        };
+        let rank = stats.calculate_rank();
+        assert_eq!(
+            rank,
+            Rank {
+                level: "A+".to_string(),
+                score: 49
+            }
+        );
+    }
 }

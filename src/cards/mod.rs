@@ -5,7 +5,7 @@ use svg::{
     },
     Document, Node,
 };
-use tracing::info;
+use tracing::trace;
 
 mod icons;
 mod stats;
@@ -27,13 +27,16 @@ pub struct Card {
     height: u16,
     border_radius: f32,
     theme: Theme,
+    css: String,
     title: String,
-    desc: String,
     hide_border: bool,
     hide_title: bool,
     padding_x: usize,
     padding_y: usize,
     animations: bool,
+    // Accessibility
+    a11y_title: String,
+    a11y_desc: String,
 }
 
 #[derive(Clone)]
@@ -80,14 +83,26 @@ impl CardBuilder {
     }
 
     #[inline]
-    pub fn with_desc<T: Into<String>>(mut self, desc: T) -> Self {
-        self.inner.desc = desc.into();
+    pub fn with_css<T: Into<String>>(mut self, css: T) -> Self {
+        self.inner.css = css.into();
         self
     }
 
     #[inline]
     pub fn with_theme(mut self, theme: Theme) -> Self {
         self.inner.theme = theme;
+        self
+    }
+
+    #[inline]
+    pub fn with_a11y_title<T: Into<String>>(mut self, title: T) -> Self {
+        self.inner.a11y_title = title.into();
+        self
+    }
+
+    #[inline]
+    pub fn with_a11y_desc<T: Into<String>>(mut self, desc: T) -> Self {
+        self.inner.a11y_desc = desc.into();
         self
     }
 
@@ -133,12 +148,12 @@ impl Card {
         I: IntoIterator,
         I::Item: Node,
     {
-        let title = Title::new()
+        let a11y_title = Title::new()
             .set("id", "titleId")
-            .add(node::Text::new(&self.title));
-        let desc = Description::new()
+            .add(node::Text::new(&self.a11y_title));
+        let a11y_desc = Description::new()
             .set("id", "descId")
-            .add(node::Text::new(&self.desc));
+            .add(node::Text::new(&self.a11y_desc));
         let style = Style::new(format!(
             r#"
           .header {{
@@ -156,7 +171,7 @@ impl Card {
           {}
         "#,
             self.theme.title,
-            style::get_styles(&self.theme, true, 100. - 60.),
+            self.css,
             style::get_animations(),
             if self.animations {
                 ""
@@ -204,14 +219,14 @@ impl Card {
             .set("fill", "none")
             .set("role", "img")
             .set("aria-labelledby", "descId")
-            .add(title)
-            .add(desc)
+            .add(a11y_title)
+            .add(a11y_desc)
             .add(style)
             .add(rect)
             .add(self.render_title(icons::Icon::Contribs.svg_path()))
             .add(g);
 
-        info!("{}", document.to_string());
+        trace!("{}", document.to_string());
 
         document
     }

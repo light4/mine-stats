@@ -6,7 +6,7 @@ use svg::{
     Document, Node,
 };
 
-use super::{flex_layout, icons::*, CardBuilder};
+use super::{flex_layout, icons::*, style::get_styles, CardBuilder};
 use crate::github::stats::UserGithubStats;
 
 #[derive(Debug, Clone)]
@@ -68,7 +68,6 @@ impl StatItem {
 
 pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: bool) -> Document {
     let line_height = 25;
-    let rank_level = "A+";
     let width = 495;
 
     let stat_collections = get_stat_collections(&github);
@@ -96,7 +95,7 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
             .set("alignment-baseline", "central")
             .set("dominant-baseline", "central")
             .set("text-anchor", "middle")
-            .add(node::Text::new(rank_level));
+            .add(node::Text::new(&github.rank.level));
         let g_rank_text = Group::new().set("class", "rank-text").add(rank_text);
 
         let rank_x_translation = {
@@ -117,8 +116,9 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
             .add(rank_circle)
             .add(g_rank_text)
     };
+
     // Accessibility Labels
-    let desc = &stat_collections
+    let a11y_desc = &stat_collections
         .iter()
         .map(|item| format!("{}: {}", item.label, item.value))
         .collect::<Vec<String>>()
@@ -139,15 +139,19 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
         stat_items.get_inner().to_owned(),
     ];
 
+    let theme = super::theme::ONEDARK;
+    let css = get_styles(&theme, show_icons, (100 - &github.rank.score).into());
     CardBuilder::default()
         .with_width(width)
         .with_height(height)
-        .with_title(format!(
+        .with_title(format!("{}'s GitHub Stats", &github.name))
+        .with_css(css)
+        .with_a11y_title(format!(
             "{}'s GitHub Stats, Rank: {}",
             &github.name, &github.rank.level
         ))
-        .with_desc(desc)
-        .with_theme(super::theme::ONEDARK)
+        .with_a11y_desc(a11y_desc)
+        .with_theme(theme)
         .build()
         .render(body)
 }

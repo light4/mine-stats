@@ -21,7 +21,7 @@ use tracing::{info, trace};
 use crate::{
     cards::form_stats_card,
     config::{Config, ListenStack},
-    github,
+    github::{self, get_user_github_stats},
 };
 
 pub async fn run(config: Config) {
@@ -127,12 +127,13 @@ async fn get_user_info(
         return (StatusCode::FORBIDDEN, "user not in allow list").into_response();
     }
 
-    let data = github::get_user_github_stats(&config.github_api_token, &user).await;
+    let github_stats = get_user_github_stats(&config.github_api_token, &user).await;
+    info!("{:?}", github_stats);
 
     (
         StatusCode::OK,
         [(header::CONTENT_TYPE, "image/svg+xml; charset=utf-8")],
-        form_stats_card(data, false, true).to_string(),
+        form_stats_card(github_stats, false, true).to_string(),
     )
         .into_response()
 }

@@ -1,13 +1,7 @@
 use anyhow::Result;
+use mine_stats::{api, config::Config};
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
-use crate::config::Config;
-
-mod api;
-mod cards;
-mod config;
-mod github;
 
 #[tokio::main]
 async fn main() -> Result<()> {
