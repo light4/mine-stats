@@ -9,7 +9,7 @@ use anyhow::Result;
 use askama::Template;
 use axum::{
     body::Body,
-    extract::{ConnectInfo, Query, State},
+    extract::{ConnectInfo, FromRef, Query, State},
     http::{header, Request, StatusCode},
     response::{Html, IntoResponse, Response},
     routing::get,
@@ -19,10 +19,17 @@ use hyper::server::{accept::Accept, conn::AddrIncoming};
 use tracing::{info, trace};
 
 use crate::{
+    cache,
     cards::form_stats_card,
     config::{Config, ListenStack},
     github::{self, get_user_github_stats},
 };
+
+#[derive(Debug, Clone, FromRef)]
+struct AppState {
+    config: Config,
+    cache: cache::SharedCache,
+}
 
 pub async fn run(config: Config) {
     let localhost_v4 = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), config.listen_port);
@@ -33,14 +40,19 @@ pub async fn run(config: Config) {
 
     let listen_stack = &config.listen_stack.clone();
 
+    let app_state = AppState {
+        config: config,
+        cache: cache::SharedCache::default(),
+    };
     // build our application with a route
     let app = Router::new()
         .route("/ip", get(get_ip))
         .route("/stats", get(get_user_info))
         .route("/stats/top-langs", get(get_top_langs))
+        .route("/cache/keys", get(cache::list_keys_api))
         // add a fallback service for handling routes to unknown paths
         .fallback(handler_404)
-        .with_state(config);
+        .with_state(app_state);
 
     // run it
     if let ListenStack::Both = listen_stack {
