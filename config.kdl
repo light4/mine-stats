@@ -1,0 +1,6 @@
+// ipv4, ipv6, both
+listen_stack "ipv4"
+listen_port 8080
+
+allow_users "light4"
+github_api_token "YOUR_GITHUB_TOKEN"
