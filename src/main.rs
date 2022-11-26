@@ -3,7 +3,7 @@ use mine_stats::{api, config::Config};
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     let config_file = std::env::args()
         .nth(1)
