@@ -202,7 +202,7 @@ impl Card {
     }
 }
 
-pub fn flex_layout<T>(items: Vec<T>, gap: usize, direction: &str) -> Vec<Group>
+pub fn flex_layout<T>(items: Vec<T>, gap: u16, direction: &str) -> Vec<Group>
 where
     T: Into<Element>,
 {

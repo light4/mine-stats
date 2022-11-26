@@ -60,16 +60,22 @@ impl StatItem {
             .set("x", text_x)
             .set("y", 12.5)
             .set("class", text_class)
-            .set("data-testid", "id")
+            .set("data-testid", self.icon.as_str())
             .add(node::Text::new(format!("{}", self.value)));
         g.add(text).add(text_2)
     }
 }
 
 pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: bool) -> Document {
+    let line_height = 25;
     let rank_level = "A+";
     let width = 495;
-    let height = 195;
+
+    let stat_collections = get_stat_collections(&github, show_icons);
+    let height = std::cmp::max(
+        45 + (stat_collections.len() as u16 + 1) * line_height,
+        if hide_rank { 0 } else { 150 },
+    );
 
     let rank_circle = if hide_rank {
         Group::new()
@@ -105,14 +111,17 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
             .set("data-testid", "rank-circle")
             .set(
                 "transform",
-                format!("translate({}, {}", rank_x_translation, height / 2 - 50),
+                format!("translate({}, {})", rank_x_translation, height / 2 - 50),
             )
             .add(rank_circle_rim)
             .add(rank_circle)
             .add(g_rank_text)
     };
 
-    let stat_items = create_stat_items(&github, show_icons);
+    let mut stat_items = SVG::new().set("x", 0).set("y", 0);
+    for item in flex_layout(stat_collections, line_height, "column") {
+        stat_items.append(item);
+    }
 
     let body = vec![
         rank_circle.get_inner().to_owned(),
@@ -127,12 +136,10 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
         .render(body)
 }
 
-pub fn create_stat_items(github: &UserGithubStats, show_icons: bool) -> SVG {
-    let mut stat_items = SVG::new().set("x", 0).set("y", 0);
-
-    let mut items = vec![];
+pub fn get_stat_collections(github: &UserGithubStats, show_icons: bool) -> Vec<Group> {
+    let mut result = vec![];
     for (idx, icon) in Icon::all().iter().enumerate() {
-        let stat_item = match icon {
+        let item = match icon {
             Icon::Star => StatItem::new(*icon, "Total Stars Earned: ", github.stars),
             Icon::Commits => StatItem::new(*icon, "Total Commits (2022): ", github.commits),
             Icon::Prs => StatItem::new(*icon, "Total PRs: ", github.prs),
@@ -140,12 +147,8 @@ pub fn create_stat_items(github: &UserGithubStats, show_icons: bool) -> SVG {
             Icon::Contribs => StatItem::new(*icon, "Contributed to (last year): ", github.contribs),
             _ => continue,
         };
-        items.push(stat_item.create_text_node(idx, show_icons, true))
+        result.push(item.create_text_node(idx, show_icons, true))
     }
 
-    for item in flex_layout(items, 10, "column") {
-        stat_items.append(item);
-    }
-
-    stat_items
+    result
 }
