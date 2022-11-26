@@ -19,10 +19,10 @@ use hyper::server::{accept::Accept, conn::AddrIncoming};
 use tracing::{info, trace};
 
 use crate::{
-    cache,
+    cache::{self, SharedCache, TIMEOUT_SECS},
     cards::form_stats_card,
     config::{Config, ListenStack},
-    github::{self, get_user_github_stats},
+    github::{self, get_user_github_stats, stats::UserGithubStats},
 };
 
 #[derive(Debug, Clone, FromRef)]
@@ -126,8 +126,8 @@ async fn handler_404() -> impl IntoResponse {
 async fn get_user_info(
     Query(params): Query<HashMap<String, String>>,
     State(config): State<Config>,
+    State(db): State<SharedCache>,
 ) -> Response {
-    dbg!(&params);
     if params.get("user").is_none() {
         return (StatusCode::NOT_FOUND, "no user").into_response();
     }
@@ -135,11 +135,26 @@ async fn get_user_info(
     let user = params.get("user").unwrap().to_owned();
 
     if !config.allow_users.is_empty() && !config.allow_users.contains(&user) {
-        dbg!(&config.allow_users);
         return (StatusCode::FORBIDDEN, "user not in allow list").into_response();
     }
 
-    let github_stats = get_user_github_stats(&config.github_api_token, &user).await;
+    let cached_stats: Option<UserGithubStats> = cache::cache_get(&db, &user);
+    let github_stats = if let Some(stats) = cached_stats {
+        if stats._time.elapsed().unwrap() > TIMEOUT_SECS {
+            let new_stats = get_user_github_stats(&config.github_api_token, &user).await;
+            cache::cache_set(db, &user, new_stats.clone());
+            info!("update github stats cache: {}", &user);
+            new_stats
+        } else {
+            info!("get github stats cache: {}", &user);
+            stats
+        }
+    } else {
+        let new_stats = get_user_github_stats(&config.github_api_token, &user).await;
+        cache::cache_set(db, &user, new_stats.clone());
+        info!("set github stats cache: {}", &user);
+        new_stats
+    };
     info!("{:?}", github_stats);
 
     (

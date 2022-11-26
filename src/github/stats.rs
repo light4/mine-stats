@@ -1,8 +1,28 @@
+use std::{ops::Deref, time::SystemTime};
+
+use bincode::{Decode, Encode};
 use tracing::trace;
 
 use super::{build_client, query_user_info, query_user_repos, user_info, user_repos};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Decode, Encode)]
+pub(crate) struct SystemTimeWrapper(SystemTime);
+
+impl Default for SystemTimeWrapper {
+    fn default() -> Self {
+        Self(SystemTime::now())
+    }
+}
+
+impl Deref for SystemTimeWrapper {
+    type Target = SystemTime;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[derive(Debug, Clone, Default, Decode, Encode)]
 pub struct UserGithubStats {
     pub login: String,
     pub name: String,
@@ -14,6 +34,7 @@ pub struct UserGithubStats {
     pub contribs: i64,
     pub followers: i64,
     pub rank: Rank,
+    pub(crate) _time: SystemTimeWrapper,
 }
 
 impl UserGithubStats {
@@ -72,7 +93,7 @@ impl UserGithubStats {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Decode, Encode)]
 pub struct Rank {
     pub level: String,
     pub score: u8,
@@ -157,6 +178,7 @@ pub async fn get_user_github_stats(token: &str, username: &str) -> UserGithubSta
         contribs: user.repositories_contributed_to.total_count,
         followers: user.followers.total_count,
         rank: Rank::default(),
+        _time: SystemTimeWrapper::default(),
     };
     stats.update_rank();
     stats
