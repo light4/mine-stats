@@ -71,7 +71,7 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
     let rank_level = "A+";
     let width = 495;
 
-    let stat_collections = get_stat_collections(&github, show_icons);
+    let stat_collections = get_stat_collections(&github);
     let height = std::cmp::max(
         45 + (stat_collections.len() as u16 + 1) * line_height,
         if hide_rank { 0 } else { 150 },
@@ -117,9 +117,20 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
             .add(rank_circle)
             .add(g_rank_text)
     };
+    // Accessibility Labels
+    let desc = &stat_collections
+        .iter()
+        .map(|item| format!("{}: {}", item.label, item.value))
+        .collect::<Vec<String>>()
+        .join(", ");
 
     let mut stat_items = SVG::new().set("x", 0).set("y", 0);
-    for item in flex_layout(stat_collections, line_height, "column") {
+    let stat_items_inner = stat_collections
+        .into_iter()
+        .enumerate()
+        .map(|(idx, item)| item.create_text_node(idx, show_icons, true))
+        .collect();
+    for item in flex_layout(stat_items_inner, line_height, "column") {
         stat_items.append(item);
     }
 
@@ -127,28 +138,29 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
         rank_circle.get_inner().to_owned(),
         stat_items.get_inner().to_owned(),
     ];
+
     CardBuilder::default()
         .with_width(width)
         .with_height(height)
         .with_title(format!("{}'s GitHub Stats", &github.name))
-        .with_desc("Total Stars Earned: 37, Total Commits in 2022 : 37, Total PRs: 77, Total Issues: 29, Contributed to (last year): 20")
+        .with_desc(desc)
         .with_theme(super::theme::ONEDARK)
         .build()
         .render(body)
 }
 
-pub fn get_stat_collections(github: &UserGithubStats, show_icons: bool) -> Vec<Group> {
+pub fn get_stat_collections(github: &UserGithubStats) -> Vec<StatItem> {
     let mut result = vec![];
-    for (idx, icon) in Icon::all().iter().enumerate() {
+    for icon in Icon::all() {
         let item = match icon {
-            Icon::Star => StatItem::new(*icon, "Total Stars Earned: ", github.stars),
-            Icon::Commits => StatItem::new(*icon, "Total Commits (2022): ", github.commits),
-            Icon::Prs => StatItem::new(*icon, "Total PRs: ", github.prs),
-            Icon::Issues => StatItem::new(*icon, "Total Issues: ", github.issues),
-            Icon::Contribs => StatItem::new(*icon, "Contributed to (last year): ", github.contribs),
+            Icon::Star => StatItem::new(icon, "Total Stars Earned: ", github.stars),
+            Icon::Commits => StatItem::new(icon, "Total Commits (2022): ", github.commits),
+            Icon::Prs => StatItem::new(icon, "Total PRs: ", github.prs),
+            Icon::Issues => StatItem::new(icon, "Total Issues: ", github.issues),
+            Icon::Contribs => StatItem::new(icon, "Contributed to (last year): ", github.contribs),
             _ => continue,
         };
-        result.push(item.create_text_node(idx, show_icons, true))
+        result.push(item)
     }
 
     result
