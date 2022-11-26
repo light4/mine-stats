@@ -132,6 +132,7 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
         .with_height(height)
         .with_title(format!("{}'s GitHub Stats", &github.name))
         .with_desc("Total Stars Earned: 37, Total Commits in 2022 : 37, Total PRs: 77, Total Issues: 29, Contributed to (last year): 20")
+        .with_theme(super::theme::ONEDARK)
         .build()
         .render(body)
 }

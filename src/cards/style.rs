@@ -71,8 +71,8 @@ pub fn get_styles(theme: &Theme, show_icons: bool, progress: f32) -> String {
         theme.text,
         theme.icon,
         if show_icons { "block" } else { "none" },
-        theme.ring,
-        theme.ring,
+        theme.ring.as_ref().unwrap_or(&theme.title),
+        theme.ring.as_ref().unwrap_or(&theme.title),
         get_progress_animation(progress),
     )
 }

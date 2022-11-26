@@ -7,8 +7,8 @@ pub struct Theme {
     pub text: Cow<'static, str>,
     pub icon: Cow<'static, str>,
     pub bg: Cow<'static, str>,
-    pub border: Cow<'static, str>,
-    pub ring: Cow<'static, str>,
+    pub border: Option<Cow<'static, str>>,
+    pub ring: Option<Cow<'static, str>>,
 }
 
 pub const DEFAULT: Theme = Theme {
@@ -17,8 +17,18 @@ pub const DEFAULT: Theme = Theme {
     icon: Cow::Borrowed("#4c71f2"),
     text: Cow::Borrowed("#434d58"),
     bg: Cow::Borrowed("#fffefe"),
-    border: Cow::Borrowed("#e4e2e2"),
-    ring: Cow::Borrowed("#2f80ed"),
+    border: Some(Cow::Borrowed("#e4e2e2")),
+    ring: Some(Cow::Borrowed("#2f80ed")),
+};
+
+pub const ONEDARK: Theme = Theme {
+    name: Cow::Borrowed("onedark"),
+    title: Cow::Borrowed("#e4bf7a"),
+    icon: Cow::Borrowed("#8eb573"),
+    text: Cow::Borrowed("#df6d74"),
+    bg: Cow::Borrowed("#282c34"),
+    border: None,
+    ring: None,
 };
 
 impl Default for Theme {

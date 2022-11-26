@@ -16,6 +16,8 @@ mod top_langs;
 pub use stats::form_stats_card;
 use theme::Theme;
 
+use crate::cards::theme::DEFAULT;
+
 #[derive(Debug, Clone, Default)]
 pub struct Color {}
 
@@ -80,6 +82,12 @@ impl CardBuilder {
     #[inline]
     pub fn with_desc<T: Into<String>>(mut self, desc: T) -> Self {
         self.inner.desc = desc.into();
+        self
+    }
+
+    #[inline]
+    pub fn with_theme(mut self, theme: Theme) -> Self {
+        self.inner.theme = theme;
         self
     }
 
@@ -162,7 +170,14 @@ impl Card {
             .set("y", 0.5)
             .set("rx", self.border_radius)
             .set("height", "99%")
-            .set("stroke", self.theme.border.as_ref())
+            .set(
+                "stroke",
+                self.theme
+                    .border
+                    .as_ref()
+                    .unwrap_or(&DEFAULT.border.unwrap())
+                    .as_ref(),
+            )
             .set("width", self.width - 1)
             .set("fill", self.theme.bg.as_ref())
             .set("stroke-opacity", if self.hide_border { 0 } else { 1 });
