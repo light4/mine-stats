@@ -1,7 +1,7 @@
 use anyhow::Result;
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::Client;
-use tracing::info;
+use tracing::trace;
 
 pub mod stats;
 pub mod top_langs;
@@ -35,7 +35,7 @@ pub async fn query_user_info(
     let request_body = user_info::UserInfo::build_query(variables);
     let res = client.post(GITHUB_API).json(&request_body).send().await?;
     let response_body: Response<user_info::ResponseData> = res.json().await?;
-    info!("{:#?}", response_body);
+    trace!("{:#?}", response_body);
     Ok(response_body.data.unwrap())
 }
 
@@ -46,7 +46,7 @@ pub async fn query_top_lang(
     let request_body = top_langs::TopLang::build_query(variables);
     let res = client.post(GITHUB_API).json(&request_body).send().await?;
     let response_body: Response<top_langs::ResponseData> = res.json().await?;
-    info!("{:#?}", response_body);
+    trace!("{:#?}", response_body);
     Ok(response_body.data.unwrap())
 }
 
@@ -57,6 +57,6 @@ pub async fn query_user_repos(
     let request_body = user_repos::UserRepo::build_query(variables);
     let res = client.post(GITHUB_API).json(&request_body).send().await?;
     let response_body: Response<user_repos::ResponseData> = res.json().await?;
-    info!("{:#?}", response_body);
+    trace!("{:#?}", response_body);
     Ok(response_body.data.unwrap())
 }

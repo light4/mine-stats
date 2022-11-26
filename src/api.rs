@@ -41,7 +41,7 @@ pub async fn run(config: Config) {
     let listen_stack = &config.listen_stack.clone();
 
     let app_state = AppState {
-        config: config,
+        config,
         cache: cache::SharedCache::default(),
     };
     // build our application with a route
