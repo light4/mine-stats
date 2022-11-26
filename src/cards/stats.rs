@@ -7,7 +7,7 @@ use svg::{
 };
 
 use super::{flex_layout, icons::*, CardBuilder};
-use crate::github::UserGithubStats;
+use crate::github::stats::UserGithubStats;
 
 #[derive(Debug, Clone)]
 pub struct StatItem {
@@ -142,7 +142,10 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
     CardBuilder::default()
         .with_width(width)
         .with_height(height)
-        .with_title(format!("{}'s GitHub Stats", &github.name))
+        .with_title(format!(
+            "{}'s GitHub Stats, Rank: {}",
+            &github.name, &github.rank.level
+        ))
         .with_desc(desc)
         .with_theme(super::theme::ONEDARK)
         .build()

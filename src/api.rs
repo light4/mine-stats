@@ -127,14 +127,12 @@ async fn get_user_info(
         return (StatusCode::FORBIDDEN, "user not in allow list").into_response();
     }
 
-    let client = github::build_client(&config.github_api_token).unwrap();
-    let variables = github::user_info::Variables { login: user };
-    let data = github::query_user_info(&client, variables).await.unwrap();
+    let data = github::get_user_github_stats(&config.github_api_token, &user).await;
 
     (
         StatusCode::OK,
         [(header::CONTENT_TYPE, "image/svg+xml; charset=utf-8")],
-        form_stats_card(data.into(), false, true).to_string(),
+        form_stats_card(data, false, true).to_string(),
     )
         .into_response()
 }
