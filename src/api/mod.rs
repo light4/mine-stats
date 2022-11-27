@@ -22,20 +22,22 @@ mod cache;
 mod ip;
 mod stats;
 mod status;
+mod themes;
 mod top_langs;
 
 use crate::{
     cache::SharedCache,
-    config::{Config, ListenStack},
+    config::{Config, ListenStack, Themes},
 };
 
 #[derive(Debug, Clone, FromRef)]
 struct AppState {
     config: Config,
+    themes: Themes,
     cache: SharedCache,
 }
 
-pub async fn run(config: Config) {
+pub async fn run(config: Config, themes: Themes) {
     let localhost_v4 = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), config.listen_port);
     let incoming_v4 = AddrIncoming::bind(&localhost_v4).unwrap();
 
@@ -46,12 +48,14 @@ pub async fn run(config: Config) {
 
     let app_state = AppState {
         config,
+        themes,
         cache: SharedCache::default(),
     };
     // build our application with a route
     let app = Router::new()
         .route("/status", get(status::get_status))
         .route("/ip", get(ip::get_ip))
+        .route("/themes", get(themes::list_themes_api))
         .route("/stats", get(stats::get_user_stats_svg))
         .route("/stats/top-langs", get(top_langs::get_top_langs_svg))
         .route("/cache/keys", get(cache::list_keys_api))

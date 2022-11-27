@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use super::theme::Theme;
+use crate::config::Theme;
 
 pub fn get_animations() -> &'static str {
     r#"/* Animations */

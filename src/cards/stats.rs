@@ -8,7 +8,7 @@ use svg::{
 };
 
 use super::{flex_layout, icons::*, style::get_styles, CardBuilder};
-use crate::github::stats::UserGithubStats;
+use crate::{config::Theme, github::stats::UserGithubStats};
 
 #[derive(Debug, Clone)]
 pub struct StatItem {
@@ -67,7 +67,12 @@ impl StatItem {
     }
 }
 
-pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: bool) -> Document {
+pub fn form_stats_card(
+    github: UserGithubStats,
+    hide_rank: bool,
+    show_icons: bool,
+    theme: Theme,
+) -> Document {
     let line_height = 25;
     let width = 495;
 
@@ -140,7 +145,6 @@ pub fn form_stats_card(github: UserGithubStats, hide_rank: bool, show_icons: boo
         stat_items.get_inner().to_owned(),
     ];
 
-    let theme = super::theme::ONEDARK;
     let css = get_styles(&theme, show_icons, (100 - &github.rank.score).into());
     CardBuilder::default()
         .with_width(width)

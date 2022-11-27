@@ -9,7 +9,7 @@ User=nobody
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
-ExecStart=/usr/local/bin/mine-stats /usr/local/etc/mine-stats/config.kdl
+ExecStart=/usr/local/bin/mine-stats /usr/local/etc/mine-stats/
 Restart=on-failure
 RestartPreventExitStatus=23
 

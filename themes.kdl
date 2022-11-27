@@ -1,0 +1,379 @@
+default_theme "onedark"
+
+themes {
+  default {
+    title "#2f80ed"
+    icon "#4c71f2"
+    text "#434d58"
+    bg "#fffefe"
+    border "#e4e2e2"
+  }
+  default_repocard {
+    title "#2f80ed"
+    icon "#586069" // icon color is different
+    text "#434d58"
+    bg "#fffefe"
+  }
+  transparent {
+    title "#006AFF"
+    icon "#0579C3"
+    text "#417E87"
+    bg "#ffffff00"
+  }
+  dark {
+    title "#fff"
+    icon "#79ff97"
+    text "#9f9f9f"
+    bg "#151515"
+  }
+  radical {
+    title "#fe428e"
+    icon "#f8d847"
+    text "#a9fef7"
+    bg "#141321"
+  }
+  merko {
+    title "#abd200"
+    icon "#b7d364"
+    text "#68b587"
+    bg "#0a0f0b"
+  }
+  gruvbox {
+    title "#fabd2f"
+    icon "#fe8019"
+    text "#8ec07c"
+    bg "#282828"
+  }
+  gruvbox_light {
+    title "#b57614"
+    icon "#af3a03"
+    text "#427b58"
+    bg "#fbf1c7"
+  }
+  tokyonight {
+    title "#70a5fd"
+    icon "#bf91f3"
+    text "#38bdae"
+    bg "#1a1b27"
+  }
+  onedark {
+    title "#e4bf7a"
+    icon "#8eb573"
+    text "#df6d74"
+    bg "#282c34"
+  }
+  cobalt {
+    title "#e683d9"
+    icon "#0480ef"
+    text "#75eeb2"
+    bg "#193549"
+  }
+  synthwave {
+    title "#e2e9ec"
+    icon "#ef8539"
+    text "#e5289e"
+    bg "#2b213a"
+  }
+  highcontrast {
+    title "#e7f216"
+    icon "#00ffff"
+    text "#fff"
+    bg "#000"
+  }
+  dracula {
+    title "#ff6e96"
+    icon "#79dafa"
+    text "#f8f8f2"
+    bg "#282a36"
+  }
+  prussian {
+    title "#bddfff"
+    icon "#38a0ff"
+    text "#6e93b5"
+    bg "#172f45"
+  }
+  monokai {
+    title "#eb1f6a"
+    icon "#e28905"
+    text "#f1f1eb"
+    bg "#272822"
+  }
+  vue {
+    title "#41b883"
+    icon "#41b883"
+    text "#273849"
+    bg "#fffefe"
+  }
+  "vue-dark" {
+    title "#41b883"
+    icon "#41b883"
+    text "#fffefe"
+    bg "#273849"
+  }
+  "shades-of-purple" {
+    title "#fad000"
+    icon "#b362ff"
+    text "#a599e9"
+    bg "#2d2b55"
+  }
+  nightowl {
+    title "#c792ea"
+    icon "#ffeb95"
+    text "#7fdbca"
+    bg "#011627"
+  }
+  buefy {
+    title "#7957d5"
+    icon "#ff3860"
+    text "#363636"
+    bg "#ffffff"
+  }
+  "blue-green" {
+    title "#2f97c1"
+    icon "#f5b700"
+    text "#0cf574"
+    bg "#040f0f"
+  }
+  algolia {
+    title "#00AEFF"
+    icon "#2DDE98"
+    text "#FFFFFF"
+    bg "#050F2C"
+  }
+  "great-gatsby" {
+    title "#ffa726"
+    icon "#ffb74d"
+    text "#ffd95b"
+    bg "#000000"
+  }
+  darcula {
+    title "#BA5F17"
+    icon "#84628F"
+    text "#BEBEBE"
+    bg "#242424"
+  }
+  bear {
+    title "#e03c8a"
+    icon "#00AEFF"
+    text "#bcb28d"
+    bg "#1f2023"
+  }
+  "solarized-dark" {
+    title "#268bd2"
+    icon "#b58900"
+    text "#859900"
+    bg "#002b36"
+  }
+  "solarized-light" {
+    title "#268bd2"
+    icon "#b58900"
+    text "#859900"
+    bg "#fdf6e3"
+  }
+  "chartreuse-dark" {
+    title "#7fff00"
+    icon "#00AEFF"
+    text "#fff"
+    bg "#000"
+  }
+  nord {
+    title "#81a1c1"
+    text "#d8dee9"
+    icon "#88c0d0"
+    bg "#2e3440"
+  }
+  gotham {
+    title "#2aa889"
+    icon "#599cab"
+    text "#99d1ce"
+    bg "#0c1014"
+  }
+  "material-palenight" {
+    title "#c792ea"
+    icon "#89ddff"
+    text "#a6accd"
+    bg "#292d3e"
+  }
+  graywhite {
+    title "#24292e"
+    icon "#24292e"
+    text "#24292e"
+    bg "#ffffff"
+  }
+  "vision-friendly-dark" {
+    title "#ffb000"
+    icon "#785ef0"
+    text "#ffffff"
+    bg "#000000"
+  }
+  "ayu-mirage" {
+    title "#f4cd7c"
+    icon "#73d0ff"
+    text "#c7c8c2"
+    bg "#1f2430"
+  }
+  "midnight-purple" {
+    title "#9745f5"
+    icon "#9f4bff"
+    text "#ffffff"
+    bg "#000000"
+  }
+  calm {
+    title "#e07a5f"
+    icon "#edae49"
+    text "#ebcfb2"
+    bg "#373f51"
+  }
+  "flag-india" {
+    title "#ff8f1c"
+    icon "#250E62"
+    text "#509E2F"
+    bg "#ffffff"
+  }
+  omni {
+    title "#FF79C6"
+    icon "#e7de79"
+    text "#E1E1E6"
+    bg "#191622"
+  }
+  react {
+    title "#61dafb"
+    icon "#61dafb"
+    text "#ffffff"
+    bg "#20232a"
+  }
+  jolly {
+    title "#ff64da"
+    icon "#a960ff"
+    text "#ffffff"
+    bg "#291B3E"
+  }
+  maroongold {
+    title "#F7EF8A"
+    icon "#F7EF8A"
+    text "#E0AA3E"
+    bg "#260000"
+  }
+  yeblu {
+    title "#ffff00"
+    icon "#ffff00"
+    text "#ffffff"
+    bg "#002046"
+  }
+  blueberry {
+    title "#82aaff"
+    icon "#89ddff"
+    text "#27e8a7"
+    bg "#242938"
+  }
+  slateorange {
+    title "#faa627"
+    icon "#faa627"
+    text "#ffffff"
+    bg "#36393f"
+  }
+  kacho_ga {
+    title "#bf4a3f"
+    icon "#a64833"
+    text "#d9c8a9"
+    bg "#402b23"
+  }
+  outrun {
+    title "#ffcc00"
+    icon "#ff1aff"
+    text "#8080ff"
+    bg "#141439"
+  }
+  ocean_dark {
+    title "#8957B2"
+    icon "#FFFFFF"
+    text "#92D534"
+    bg "#151A28"
+  }
+  city_lights {
+    title "#5D8CB3"
+    icon "#4798FF"
+    text "#718CA1"
+    bg "#1D252C"
+  }
+  github_dark {
+    title "#58A6FF"
+    icon "#1F6FEB"
+    text "#C3D1D9"
+    bg "#0D1117"
+  }
+  discord_old_blurple {
+    title "#7289DA"
+    icon "#7289DA"
+    text "#FFFFFF"
+    bg "#2C2F33"
+  }
+  aura_dark {
+    title "#ff7372"
+    icon "#6cffd0"
+    text "#dbdbdb"
+    bg "#252334"
+  }
+  panda {
+    title "#19f9d899"
+    icon "#19f9d899"
+    text "#FF75B5"
+    bg "#31353a"
+  }
+  noctis_minimus {
+    title "#d3b692"
+    icon "#72b7c0"
+    text "#c5cdd3"
+    bg "#1b2932"
+  }
+  cobalt2 {
+    title "#ffc600"
+    icon "#ffffff"
+    text "#0088ff"
+    bg "#193549"
+  }
+  swift {
+    title "#000000"
+    icon "#f05237"
+    text "#000000"
+    bg "#f7f7f7"
+  }
+  aura {
+    title "#a277ff"
+    icon "#ffca85"
+    text "#61ffca"
+    bg "#15141b"
+  }
+  apprentice {
+    title "#ffffff"
+    icon "#ffffaf"
+    text "#bcbcbc"
+    bg "#262626"
+  }
+  moltack {
+    title "#86092C"
+    icon "#86092C"
+    text "#574038"
+    bg "#F5E1C0"
+  }
+  codeSTACKr {
+    title "#ff652f"
+    icon "#FFE400"
+    text "#ffffff"
+    bg "#09131B"
+    border "#0c1a25"
+  }
+  rose_pine {
+    title "#9ccfd8"
+    icon "#ebbcba"
+    text "#e0def4"
+    bg "#191724"
+  }
+  date_night {
+    title "#DA7885"
+    text "#E1B2A2"
+    icon "#BB8470"
+    border "#170F0C"
+    bg "#170F0C"
+  }
+}

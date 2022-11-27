@@ -1,13 +1,16 @@
 use anyhow::Result;
-use mine_stats::{api, config::Config};
+use mine_stats::{
+    api,
+    config::{Config, Themes},
+};
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
-    let config_file = std::env::args()
-        .nth(1)
-        .unwrap_or_else(|| "config.kdl".to_string());
+    let config_path = std::env::args().nth(1).unwrap_or_default();
+    let config_file = format!("{}config.kdl", config_path);
+    let themes_file = format!("{}themes.kdl", config_path);
 
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
@@ -18,7 +21,8 @@ async fn main() -> Result<()> {
 
     let config = Config::init(config_file).await.unwrap();
     info!("config: {:?}", config);
+    let themes = Themes::init(themes_file).await.unwrap_or_default();
 
-    api::run(config).await;
+    api::run(config, themes).await;
     Ok(())
 }

@@ -6,6 +6,10 @@ use anyhow::Result;
 use kdl::KdlDocument;
 use tokio::fs::read_to_string;
 
+mod themes;
+
+pub use themes::{Theme, Themes, DEFAULT};
+
 #[derive(Clone)]
 pub struct Config {
     /// default both(ipv4 and ipv6)
@@ -25,6 +29,7 @@ impl fmt::Debug for Config {
         f.debug_struct("Config")
             .field("listen_stack", &self.listen_stack)
             .field("listen_port", &self.listen_port)
+            .field("services", &self.services)
             .field("allow_users", &self.allow_users)
             .finish()
     }

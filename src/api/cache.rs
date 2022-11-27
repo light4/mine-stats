@@ -8,7 +8,7 @@ use serde_json::json;
 
 use crate::cache::{list_keys, SharedCache};
 
-/// list all cached kesy
+/// list all cached keys
 pub async fn list_keys_api(State(cache): State<SharedCache>) -> impl IntoResponse {
     let keys = list_keys(&cache);
     Json(json!({

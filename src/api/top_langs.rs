@@ -9,7 +9,7 @@ use axum::{
 use crate::{
     cache::{self, SharedCache},
     cards::form_top_langs_card,
-    config::Config,
+    config::{Config, Themes},
     github::top_langs::get_top_langs,
 };
 
@@ -18,6 +18,7 @@ use crate::{
 pub async fn get_top_langs_svg(
     Query(params): Query<HashMap<String, String>>,
     State(config): State<Config>,
+    State(themes): State<Themes>,
     State(db): State<SharedCache>,
 ) -> impl IntoResponse {
     if params.get("user").is_none() {
@@ -39,11 +40,11 @@ pub async fn get_top_langs_svg(
 
     let data =
         cache::get_or_update(db, &user, || get_top_langs(&config.github_api_token, &user)).await;
-
+    let theme = themes.find(params.get("theme"));
     (
         StatusCode::OK,
         [(header::CONTENT_TYPE, "image/svg+xml; charset=utf-8")],
-        form_top_langs_card(data, hide, None, None).to_string(),
+        form_top_langs_card(data, hide, None, None, theme).to_string(),
     )
         .into_response()
 }

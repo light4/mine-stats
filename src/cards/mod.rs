@@ -11,14 +11,12 @@ mod icons;
 mod progress;
 mod stats;
 mod style;
-mod theme;
 mod top_langs;
 
 pub use stats::form_stats_card;
-use theme::Theme;
 pub use top_langs::form_top_langs_card;
 
-use crate::cards::theme::DEFAULT;
+use crate::config::{Theme, DEFAULT};
 
 #[derive(Debug, Clone, Default)]
 pub struct Color {}

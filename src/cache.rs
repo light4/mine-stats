@@ -75,7 +75,7 @@ where
     } else {
         let new_data = func().await;
         cache_set(db, key, new_data.clone());
-        info!("[Cache][SET] {} cache: {}", value_type, key);
+        info!("[Cache][SET] {}: {}", value_type, key);
         new_data
     };
     trace!("{:?}", data);

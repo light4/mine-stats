@@ -3,10 +3,13 @@ use svg::{
     node::element::{Circle, Group, Text, SVG},
     Document, Node,
 };
-use tracing::info;
+use tracing::trace;
 
-use super::{theme::ONEDARK, CardBuilder};
-use crate::github::top_langs::{Lang, TopLangs};
+use super::CardBuilder;
+use crate::{
+    config::Theme,
+    github::top_langs::{Lang, TopLangs},
+};
 
 const DEFAULT_CARD_WIDTH: u16 = 300;
 const MIN_CARD_WIDTH: u16 = 230;
@@ -96,9 +99,10 @@ pub fn form_top_langs_card(
     hide: Vec<String>,
     card_width: Option<u16>,
     langs_count: Option<u8>,
+    theme: Theme,
 ) -> Document {
     let langs = use_languages(top_langs, hide, langs_count.unwrap_or(DEFAULT_LANGS_COUNT));
-    info!("{:?}", langs);
+    trace!("{:?}", langs);
     // DEFAUT
     let width = match card_width {
         None => DEFAULT_CARD_WIDTH,
@@ -115,21 +119,21 @@ pub fn form_top_langs_card(
         body.append(node);
     }
 
-    let theme = ONEDARK;
     let css = format!(
         ".lang-name {{ font: 400 11px 'Segoe UI', Ubuntu, Sans-Serif; fill: {} }}",
         theme.text
     );
-    let theme = ONEDARK;
+    let title = "Most Used Languages";
     CardBuilder::default()
         .with_width(width)
         .with_height(height)
-        .with_title("Most Used Languages")
+        .with_title(title)
         .with_theme(theme)
         .with_animations(false)
         // .set_hide_border(hide_border)
         // .set_hide_title(hide_title)
         .with_css(css)
+        .with_a11y_title(title)
         .build()
         .render([body])
 }

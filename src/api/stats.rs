@@ -11,7 +11,7 @@ use axum::{
 use crate::{
     cache::{self, SharedCache},
     cards::form_stats_card,
-    config::Config,
+    config::{Config, Themes},
     github::get_user_github_stats,
 };
 
@@ -20,6 +20,7 @@ use crate::{
 pub async fn get_user_stats_svg(
     Query(params): Query<HashMap<String, String>>,
     State(config): State<Config>,
+    State(themes): State<Themes>,
     State(db): State<SharedCache>,
 ) -> Response {
     if params.get("user").is_none() {
@@ -37,10 +38,11 @@ pub async fn get_user_stats_svg(
     })
     .await;
 
+    let theme = themes.find(params.get("theme"));
     (
         StatusCode::OK,
         [(header::CONTENT_TYPE, "image/svg+xml; charset=utf-8")],
-        form_stats_card(data, false, true).to_string(),
+        form_stats_card(data, false, true, theme).to_string(),
     )
         .into_response()
 }
