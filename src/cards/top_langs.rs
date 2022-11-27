@@ -8,13 +8,13 @@ use tracing::info;
 use super::{theme::ONEDARK, CardBuilder};
 use crate::github::top_langs::{Lang, TopLangs};
 
-const DEFAULT_CARD_WIDTH: usize = 300;
+const DEFAULT_CARD_WIDTH: u16 = 300;
 const MIN_CARD_WIDTH: u16 = 230;
-const DEFAULT_LANGS_COUNT: usize = 5;
+const DEFAULT_LANGS_COUNT: u8 = 5;
 const DEFAULT_LANG_COLOR: &str = "#858585";
 const CARD_PADDING: usize = 25;
 
-fn create_progress_text_node(width: u16, name: &str, color: &str, progress: u8) -> Group {
+fn create_progress_text_node(width: u16, name: &str, color: &str, progress: f32) -> Group {
     let padding_right = 95;
     let progress_text_x = width - padding_right + 10;
     let progress_width = width - padding_right;
@@ -29,7 +29,7 @@ fn create_progress_text_node(width: u16, name: &str, color: &str, progress: u8) 
         .set("x", progress_text_x)
         .set("y", "34")
         .set("class", "lang-name")
-        .add(node::Text::new(format!("{}%", progress)));
+        .add(node::Text::new(format!("{:.2}%", progress)));
     let progress_node =
         super::progress::create_progress_node(0, 25, progress_width, color, progress, "#ddd");
 
@@ -39,6 +39,7 @@ fn create_progress_text_node(width: u16, name: &str, color: &str, progress: u8) 
         .add(progress_node)
 }
 
+#[allow(dead_code)]
 fn create_compact_lang_node(lang: Lang, total_size: usize) -> Group {
     let percentage = lang.size * 100 / total_size;
     let color = lang.color.unwrap_or("#858585".to_string());
@@ -63,8 +64,8 @@ fn render_normal_layout(langs: Vec<Lang>, width: u16) -> Vec<Group> {
         .iter()
         .map(|lang| {
             let color = lang.color.clone().unwrap_or(DEFAULT_LANG_COLOR.to_owned());
-            let progress: usize = lang.size * 100 / total_language_size;
-            create_progress_text_node(width, &lang.name, &color, progress as u8)
+            let progress: f32 = lang.size as f32 * 100. / total_language_size as f32;
+            create_progress_text_node(width, &lang.name, &color, progress)
         })
         .collect();
     super::flex_layout(items, 40, "column")
@@ -74,7 +75,7 @@ fn calculate_normal_layout_height(total_langs: u16) -> u16 {
     45 + (total_langs + 1) * 40
 }
 
-fn use_languages(top_langs: TopLangs, hide: Vec<String>, langs_count: usize) -> Vec<Lang> {
+fn use_languages(top_langs: TopLangs, hide: Vec<String>, langs_count: u8) -> Vec<Lang> {
     let langs_count = langs_count.clamp(1, 10);
     let langs_to_hide: Vec<String> = hide
         .into_iter()
@@ -86,23 +87,23 @@ fn use_languages(top_langs: TopLangs, hide: Vec<String>, langs_count: usize) -> 
     result
         .into_iter()
         .filter(|lang| !langs_to_hide.contains(&lang.name.trim().to_ascii_lowercase()))
-        .take(langs_count)
+        .take(langs_count as usize)
         .collect()
 }
 
 pub fn form_top_langs_card(
     top_langs: TopLangs,
     hide: Vec<String>,
-    langs_count: usize,
-    card_width: u16,
+    card_width: Option<u16>,
+    langs_count: Option<u8>,
 ) -> Document {
-    let langs = use_languages(top_langs, hide, langs_count);
+    let langs = use_languages(top_langs, hide, langs_count.unwrap_or(DEFAULT_LANGS_COUNT));
     info!("{:?}", langs);
     // DEFAUT
-    let width = if card_width < MIN_CARD_WIDTH {
-        MIN_CARD_WIDTH
-    } else {
-        card_width
+    let width = match card_width {
+        None => DEFAULT_CARD_WIDTH,
+        Some(n) if n < MIN_CARD_WIDTH => MIN_CARD_WIDTH,
+        _ => card_width.unwrap(),
     };
     let height = calculate_normal_layout_height(langs.len() as u16);
     let final_layout = render_normal_layout(langs, width);
@@ -115,6 +116,11 @@ pub fn form_top_langs_card(
     }
 
     let theme = ONEDARK;
+    let css = format!(
+        ".lang-name {{ font: 400 11px 'Segoe UI', Ubuntu, Sans-Serif; fill: {} }}",
+        theme.text
+    );
+    let theme = ONEDARK;
     CardBuilder::default()
         .with_width(width)
         .with_height(height)
@@ -123,7 +129,7 @@ pub fn form_top_langs_card(
         .with_animations(false)
         // .set_hide_border(hide_border)
         // .set_hide_title(hide_title)
-        .with_css(r###".lang-name { font: 400 11px 'Segoe UI', Ubuntu, Sans-Serif; fill: ${colors.textColor} }"###,)
+        .with_css(css)
         .build()
         .render([body])
 }

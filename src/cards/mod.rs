@@ -78,6 +78,7 @@ impl CardBuilder {
         self
     }
 
+    #[allow(dead_code)]
     #[inline]
     pub fn with_border_radius(mut self, border_radius: f32) -> Self {
         self.inner.border_radius = border_radius;

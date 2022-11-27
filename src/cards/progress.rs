@@ -5,10 +5,10 @@ pub fn create_progress_node(
     y: usize,
     width: u16,
     color: &str,
-    progress: u8,
+    progress: f32,
     background_color: &str,
 ) -> Document {
-    let progress = progress.clamp(2, 100);
+    let bar = progress.clamp(2., 100.);
 
     let background = Rectangle::new()
         .set("x", 0)
@@ -25,7 +25,7 @@ pub fn create_progress_node(
         .set("x", 0)
         .set("y", 0)
         .set("data-testid", "lang-progress")
-        .set("width", progress);
+        .set("width", bar);
     Document::new()
         .set("width", width)
         .set("x", x)

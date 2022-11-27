@@ -60,7 +60,7 @@ pub async fn get_top_langs_svg(
     (
         StatusCode::OK,
         [(header::CONTENT_TYPE, "image/svg+xml; charset=utf-8")],
-        form_top_langs_card(data, hide, 10, 10).to_string(),
+        form_top_langs_card(data, hide, None, None).to_string(),
     )
         .into_response()
 }
