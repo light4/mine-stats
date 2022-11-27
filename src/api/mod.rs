@@ -22,6 +22,7 @@ mod cache;
 mod ip;
 mod stats;
 mod status;
+mod top_langs;
 
 use crate::{
     cache::SharedCache,
@@ -51,8 +52,8 @@ pub async fn run(config: Config) {
     let app = Router::new()
         .route("/status", get(status::get_status))
         .route("/ip", get(ip::get_ip))
-        .route("/stats", get(stats::get_user_stats))
-        .route("/stats/top-langs", get(stats::get_top_langs))
+        .route("/stats", get(stats::get_user_stats_svg))
+        .route("/stats/top-langs", get(top_langs::get_top_langs_svg))
         .route("/cache/keys", get(cache::list_keys_api))
         // add a fallback service for handling routes to unknown paths
         .fallback(handler_404)

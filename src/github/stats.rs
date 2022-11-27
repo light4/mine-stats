@@ -1,5 +1,3 @@
-use std::{ops::Deref, time::SystemTime};
-
 use anyhow::Result;
 use bincode::{Decode, Encode};
 use graphql_client::{GraphQLQuery, Response};
@@ -11,23 +9,7 @@ use super::{
     gen::{user_info, user_repos},
     GITHUB_API,
 };
-
-#[derive(Debug, Clone, Decode, Encode)]
-pub(crate) struct SystemTimeWrapper(SystemTime);
-
-impl Default for SystemTimeWrapper {
-    fn default() -> Self {
-        Self(SystemTime::now())
-    }
-}
-
-impl Deref for SystemTimeWrapper {
-    type Target = SystemTime;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
+use crate::utils::SystemTimeWrapper;
 
 #[derive(Debug, Clone, Default, Decode, Encode)]
 pub struct UserGithubStats {

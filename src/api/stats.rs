@@ -13,14 +13,12 @@ use crate::{
     cache::{cache_get, cache_set, SharedCache, TIMEOUT_SECS},
     cards::form_stats_card,
     config::Config,
-    github::{
-        build_client, get_user_github_stats, query_top_lang, stats::UserGithubStats, top_langs,
-    },
+    github::{get_user_github_stats, stats::UserGithubStats},
 };
 
 /// get user stats from github, and return a svg
 /// cache enabled
-pub async fn get_user_stats(
+pub async fn get_user_stats_svg(
     Query(params): Query<HashMap<String, String>>,
     State(config): State<Config>,
     State(db): State<SharedCache>,
@@ -60,28 +58,4 @@ pub async fn get_user_stats(
         form_stats_card(github_stats, false, true).to_string(),
     )
         .into_response()
-}
-
-/// TODO: WIP
-/// get user used top programming languages from github, and return a svg
-/// cache enabled
-pub async fn get_top_langs(
-    Query(params): Query<HashMap<String, String>>,
-    State(config): State<Config>,
-) -> impl IntoResponse {
-    if params.get("user").is_none() {
-        return (StatusCode::NOT_FOUND, "nothing to see here");
-    }
-
-    let user = params.get("user").unwrap().to_owned();
-
-    if !config.allow_users.is_empty() && !config.allow_users.contains(&user) {
-        return (StatusCode::FORBIDDEN, "nothing to see here");
-    }
-
-    let client = build_client(&config.github_api_token).unwrap();
-    let variables = top_langs::Variables { login: user };
-    query_top_lang(&client, variables).await.unwrap();
-
-    (StatusCode::OK, "get_top_langs")
 }

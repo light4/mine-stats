@@ -1,7 +1,4 @@
 use anyhow::Result;
-use graphql_client::{GraphQLQuery, Response};
-use reqwest::Client;
-use tracing::trace;
 
 pub mod gen;
 pub mod stats;

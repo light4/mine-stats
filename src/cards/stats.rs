@@ -162,7 +162,7 @@ fn current_year() -> i32 {
     Utc::now().year()
 }
 
-pub fn get_stat_collections(github: &UserGithubStats) -> Vec<StatItem> {
+fn get_stat_collections(github: &UserGithubStats) -> Vec<StatItem> {
     let mut result = vec![];
     for icon in Icon::all() {
         let item = match icon {

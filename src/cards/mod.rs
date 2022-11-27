@@ -8,6 +8,7 @@ use svg::{
 use tracing::trace;
 
 mod icons;
+mod progress;
 mod stats;
 mod style;
 mod theme;
@@ -15,6 +16,7 @@ mod top_langs;
 
 pub use stats::form_stats_card;
 use theme::Theme;
+pub use top_langs::form_top_langs_card;
 
 use crate::cards::theme::DEFAULT;
 
@@ -77,6 +79,12 @@ impl CardBuilder {
     }
 
     #[inline]
+    pub fn with_border_radius(mut self, border_radius: f32) -> Self {
+        self.inner.border_radius = border_radius;
+        self
+    }
+
+    #[inline]
     pub fn with_title<T: Into<String>>(mut self, title: T) -> Self {
         self.inner.title = title.into();
         self
@@ -91,6 +99,12 @@ impl CardBuilder {
     #[inline]
     pub fn with_theme(mut self, theme: Theme) -> Self {
         self.inner.theme = theme;
+        self
+    }
+
+    #[inline]
+    pub fn with_animations(mut self, animations: bool) -> Self {
+        self.inner.animations = animations;
         self
     }
 
