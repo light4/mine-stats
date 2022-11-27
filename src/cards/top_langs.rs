@@ -82,7 +82,7 @@ fn use_languages(top_langs: TopLangs, hide: Vec<String>, langs_count: u8) -> Vec
         .map(|i| i.trim().to_ascii_lowercase())
         .collect();
 
-    let mut result: Vec<Lang> = top_langs.langs.into_iter().map(|(_, v)| v).collect();
+    let mut result: Vec<Lang> = top_langs.langs.into_values().collect();
     result.sort_by(|a, b| b.size.cmp(&a.size));
     result
         .into_iter()

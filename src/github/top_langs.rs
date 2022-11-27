@@ -42,25 +42,21 @@ pub async fn get_top_langs(token: &str, username: &str) -> TopLangs {
     let data = query_top_langs(&client, variables).await.unwrap();
     let nodes = data.user.unwrap().repositories.nodes;
     if let Some(inner_nodes) = nodes {
-        for lang in inner_nodes {
-            if let Some(inner_lang) = lang {
-                if let Some(inner_inner_lang) = inner_lang.languages {
-                    if let Some(edges) = inner_inner_lang.edges {
-                        for edge in edges {
-                            if let Some(inner_edge) = edge {
-                                let name = inner_edge.node.name.to_string();
-                                let item = Lang {
-                                    name: inner_edge.node.name.to_string(),
-                                    color: inner_edge.node.color,
-                                    size: inner_edge.size as usize,
-                                };
-                                if langs_map.get(&name).is_none() {
-                                    langs_map.insert(name, item);
-                                } else {
-                                    let origin = langs_map.get_mut(&name).unwrap();
-                                    origin.size += item.size;
-                                }
-                            }
+        for lang in inner_nodes.into_iter().flatten() {
+            if let Some(inner_inner_lang) = lang.languages {
+                if let Some(edges) = inner_inner_lang.edges {
+                    for edge in edges.into_iter().flatten() {
+                        let name = edge.node.name.to_string();
+                        let item = Lang {
+                            name: edge.node.name.to_string(),
+                            color: edge.node.color,
+                            size: edge.size as usize,
+                        };
+                        if langs_map.get(&name).is_none() {
+                            langs_map.insert(name, item);
+                        } else {
+                            let origin = langs_map.get_mut(&name).unwrap();
+                            origin.size += item.size;
                         }
                     }
                 }

@@ -28,7 +28,7 @@ pub async fn get_top_langs_svg(
     let user = params.get("user").unwrap().to_owned();
     let hide: Vec<String> = {
         if let Some(hide) = params.get("hide") {
-            hide.split(",").map(|i| i.to_string()).collect()
+            hide.split(',').map(|i| i.to_string()).collect()
         } else {
             vec![]
         }
