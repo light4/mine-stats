@@ -1,9 +1,16 @@
 use std::{ops::Deref, time::SystemTime};
 
+use anyhow::Result;
 use bincode::{Decode, Encode};
+use graphql_client::{GraphQLQuery, Response};
+use reqwest::Client;
 use tracing::trace;
 
-use super::{build_client, query_user_info, query_user_repos, user_info, user_repos};
+use super::{
+    build_client,
+    gen::{user_info, user_repos},
+    GITHUB_API,
+};
 
 #[derive(Debug, Clone, Decode, Encode)]
 pub(crate) struct SystemTimeWrapper(SystemTime);
@@ -209,4 +216,26 @@ mod tests {
             }
         );
     }
+}
+
+pub async fn query_user_info(
+    client: &Client,
+    variables: user_info::Variables,
+) -> Result<user_info::ResponseData> {
+    let request_body = user_info::UserInfo::build_query(variables);
+    let res = client.post(GITHUB_API).json(&request_body).send().await?;
+    let response_body: Response<user_info::ResponseData> = res.json().await?;
+    trace!("{:#?}", response_body);
+    Ok(response_body.data.unwrap())
+}
+
+pub async fn query_user_repos(
+    client: &Client,
+    variables: user_repos::Variables,
+) -> Result<user_repos::ResponseData> {
+    let request_body = user_repos::UserRepo::build_query(variables);
+    let res = client.post(GITHUB_API).json(&request_body).send().await?;
+    let response_body: Response<user_repos::ResponseData> = res.json().await?;
+    trace!("{:#?}", response_body);
+    Ok(response_body.data.unwrap())
 }
