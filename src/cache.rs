@@ -4,9 +4,16 @@
 use std::{
     any::type_name,
     collections::HashMap,
+    fmt::Debug,
+    future::Future,
     sync::{Arc, RwLock},
     time::Duration,
 };
+
+use bincode::{Decode, Encode};
+use tracing::{info, trace};
+
+use crate::utils::MonitorTime;
 
 pub const TIMEOUT_SECS: Duration = Duration::from_secs(60 * 60);
 
@@ -45,4 +52,33 @@ pub fn list_keys(cache: &SharedCache) -> Vec<String> {
     db.keys()
         .map(|key| key.to_string())
         .collect::<Vec<String>>()
+}
+
+pub async fn get_or_update<T, F, Fut>(db: SharedCache, key: &str, func: F) -> T
+where
+    T: Clone + Debug + Decode + Encode + MonitorTime,
+    F: Fn() -> Fut,
+    Fut: Future<Output = T>,
+{
+    let value_type = type_name::<T>();
+    let cached_data: Option<T> = cache_get(&db, key);
+    let data = if let Some(d) = cached_data {
+        if d.create_at().elapsed().unwrap() > TIMEOUT_SECS {
+            let new_data = func().await;
+            cache_set(db, key, new_data.clone());
+            info!("[Cache][UPDATE] {}: {}", value_type, key);
+            new_data
+        } else {
+            info!("[Cache][GET] {}: {}", value_type, key);
+            d
+        }
+    } else {
+        let new_data = func().await;
+        cache_set(db, key, new_data.clone());
+        info!("[Cache][SET] {} cache: {}", value_type, key);
+        new_data
+    };
+    trace!("{:?}", data);
+
+    data
 }

@@ -9,7 +9,7 @@ use super::{
     gen::{user_info, user_repos},
     GITHUB_API,
 };
-use crate::utils::SystemTimeWrapper;
+use crate::utils::{MonitorTime, SystemTimeWrapper};
 
 #[derive(Debug, Clone, Default, Decode, Encode)]
 pub struct UserGithubStats {
@@ -23,7 +23,13 @@ pub struct UserGithubStats {
     pub contribs: i64,
     pub followers: i64,
     pub rank: Rank,
-    pub(crate) _time: SystemTimeWrapper,
+    pub(crate) __create_at: SystemTimeWrapper,
+}
+
+impl MonitorTime for UserGithubStats {
+    fn create_at(&self) -> SystemTimeWrapper {
+        self.__create_at
+    }
 }
 
 impl UserGithubStats {
@@ -167,7 +173,7 @@ pub async fn get_user_github_stats(token: &str, username: &str) -> UserGithubSta
         contribs: user.repositories_contributed_to.total_count,
         followers: user.followers.total_count,
         rank: Rank::default(),
-        _time: SystemTimeWrapper::default(),
+        __create_at: SystemTimeWrapper::default(),
     };
     stats.update_rank();
     stats

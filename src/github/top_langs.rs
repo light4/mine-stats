@@ -7,7 +7,7 @@ use reqwest::Client;
 use tracing::trace;
 
 use super::{build_client, gen::top_langs, GITHUB_API};
-use crate::utils::SystemTimeWrapper;
+use crate::utils::{MonitorTime, SystemTimeWrapper};
 
 pub async fn query_top_langs(
     client: &Client,
@@ -30,7 +30,13 @@ pub struct Lang {
 #[derive(Debug, Clone, Default, Decode, Encode)]
 pub struct TopLangs {
     pub langs: HashMap<String, Lang>,
-    pub(crate) _time: SystemTimeWrapper,
+    pub(crate) __create_at: SystemTimeWrapper,
+}
+
+impl MonitorTime for TopLangs {
+    fn create_at(&self) -> SystemTimeWrapper {
+        self.__create_at
+    }
 }
 
 pub async fn get_top_langs(token: &str, username: &str) -> TopLangs {
@@ -66,6 +72,6 @@ pub async fn get_top_langs(token: &str, username: &str) -> TopLangs {
 
     TopLangs {
         langs: langs_map,
-        _time: SystemTimeWrapper::default(),
+        __create_at: SystemTimeWrapper::default(),
     }
 }

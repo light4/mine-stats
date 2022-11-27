@@ -3,8 +3,8 @@ use std::{ops::Deref, time::SystemTime};
 use bincode::{Decode, Encode};
 
 /// use for cache
-#[derive(Debug, Clone, Decode, Encode)]
-pub(crate) struct SystemTimeWrapper(SystemTime);
+#[derive(Debug, Copy, Clone, Decode, Encode)]
+pub struct SystemTimeWrapper(SystemTime);
 
 impl Default for SystemTimeWrapper {
     fn default() -> Self {
@@ -18,4 +18,8 @@ impl Deref for SystemTimeWrapper {
     fn deref(&self) -> &Self::Target {
         &self.0
     }
+}
+
+pub trait MonitorTime {
+    fn create_at(&self) -> SystemTimeWrapper;
 }

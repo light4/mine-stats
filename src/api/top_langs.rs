@@ -5,13 +5,12 @@ use axum::{
     http::{header, StatusCode},
     response::IntoResponse,
 };
-use tracing::info;
 
 use crate::{
-    cache::{cache_get, cache_set, SharedCache, TIMEOUT_SECS},
+    cache::{self, SharedCache},
     cards::form_top_langs_card,
     config::Config,
-    github::top_langs::{get_top_langs, TopLangs},
+    github::top_langs::get_top_langs,
 };
 
 /// get user used top programming languages from github, and return a svg
@@ -38,24 +37,8 @@ pub async fn get_top_langs_svg(
         return (StatusCode::FORBIDDEN, "user not in allow list").into_response();
     }
 
-    let cached_data: Option<TopLangs> = cache_get(&db, &user);
-    let data = if let Some(d) = cached_data {
-        if d._time.elapsed().unwrap() > TIMEOUT_SECS {
-            let new_data = get_top_langs(&config.github_api_token, &user).await;
-            cache_set(db, &user, new_data.clone());
-            info!("update top_langs cache: {}", &user);
-            new_data
-        } else {
-            info!("get top_langs cache: {}", &user);
-            d
-        }
-    } else {
-        let new_data = get_top_langs(&config.github_api_token, &user).await;
-        cache_set(db, &user, new_data.clone());
-        info!("set top_langs cache: {}", &user);
-        new_data
-    };
-    info!("{:?}", data);
+    let data =
+        cache::get_or_update(db, &user, || get_top_langs(&config.github_api_token, &user)).await;
 
     (
         StatusCode::OK,

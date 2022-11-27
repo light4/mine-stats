@@ -7,13 +7,12 @@ use axum::{
     http::{header, StatusCode},
     response::{IntoResponse, Response},
 };
-use tracing::info;
 
 use crate::{
-    cache::{cache_get, cache_set, SharedCache, TIMEOUT_SECS},
+    cache::{self, SharedCache},
     cards::form_stats_card,
     config::Config,
-    github::{get_user_github_stats, stats::UserGithubStats},
+    github::get_user_github_stats,
 };
 
 /// get user stats from github, and return a svg
@@ -33,29 +32,15 @@ pub async fn get_user_stats_svg(
         return (StatusCode::FORBIDDEN, "user not in allow list").into_response();
     }
 
-    let cached_stats: Option<UserGithubStats> = cache_get(&db, &user);
-    let github_stats = if let Some(stats) = cached_stats {
-        if stats._time.elapsed().unwrap() > TIMEOUT_SECS {
-            let new_stats = get_user_github_stats(&config.github_api_token, &user).await;
-            cache_set(db, &user, new_stats.clone());
-            info!("update github stats cache: {}", &user);
-            new_stats
-        } else {
-            info!("get github stats cache: {}", &user);
-            stats
-        }
-    } else {
-        let new_stats = get_user_github_stats(&config.github_api_token, &user).await;
-        cache_set(db, &user, new_stats.clone());
-        info!("set github stats cache: {}", &user);
-        new_stats
-    };
-    info!("{:?}", github_stats);
+    let data = cache::get_or_update(db, &user, || {
+        get_user_github_stats(&config.github_api_token, &user)
+    })
+    .await;
 
     (
         StatusCode::OK,
         [(header::CONTENT_TYPE, "image/svg+xml; charset=utf-8")],
-        form_stats_card(github_stats, false, true).to_string(),
+        form_stats_card(data, false, true).to_string(),
     )
         .into_response()
 }
