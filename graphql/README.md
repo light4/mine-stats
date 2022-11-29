@@ -1,6 +1,16 @@
 # Info
 
-Get query from: https://github.com/anuraghazra/github-readme-stats/tree/master/src/fetchers
+GitHub public schema docs:
+
+https://docs.github.com/en/graphql/overview/public-schema
+
+Download the latest version of the public schema here:
+
+https://docs.github.com/public/schema.docs.graphql
+
+Get query from:
+
+https://github.com/anuraghazra/github-readme-stats/tree/master/src/fetchers
 
 ```sh
 # download github graphql schema, need replace token
