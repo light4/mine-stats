@@ -41,3 +41,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [profile.release]
 lto = "thin"
+codegen-units = 4
+strip = "debuginfo"
+# split-debuginfo = 'packed'    # https://doc.rust-lang.org/rustc/codegen-options/index.html#split-debuginfo
