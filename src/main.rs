@@ -9,8 +9,8 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     let config_path = std::env::args().nth(1).unwrap_or_default();
-    let config_file = format!("{}config.kdl", config_path);
-    let themes_file = format!("{}themes.kdl", config_path);
+    let config_file = format!("{config_path}config.kdl");
+    let themes_file = format!("{config_path}themes.kdl");
 
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(

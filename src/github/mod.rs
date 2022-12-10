@@ -15,7 +15,7 @@ pub fn build_client(token: &str) -> Result<reqwest::Client> {
         .default_headers(
             std::iter::once((
                 reqwest::header::AUTHORIZATION,
-                reqwest::header::HeaderValue::from_str(&format!("Bearer {}", token,)).unwrap(),
+                reqwest::header::HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
             ))
             .collect(),
         )

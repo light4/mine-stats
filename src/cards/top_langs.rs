@@ -32,7 +32,7 @@ fn create_progress_text_node(width: u16, name: &str, color: &str, progress: f32)
         .set("x", progress_text_x)
         .set("y", "34")
         .set("class", "lang-name")
-        .add(node::Text::new(format!("{:.2}%", progress)));
+        .add(node::Text::new(format!("{progress:.2}%")));
     let progress_node =
         super::progress::create_progress_node(0, 25, progress_width, color, progress, "#ddd");
 

@@ -96,7 +96,7 @@ async fn get_service(name: &str) -> Service {
         Err(e) => Service {
             name: name.into(),
             status: ServiceStatus::Unknown,
-            output: format!("systemctl status {} running error: {:?}", name, e),
+            output: format!("systemctl status {name} running error: {e:?}"),
         },
     }
 }
