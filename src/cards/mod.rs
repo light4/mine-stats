@@ -156,11 +156,7 @@ impl Card {
         g
     }
 
-    pub fn render<I>(&self, body: I) -> Document
-    where
-        I: IntoIterator,
-        I::Item: Node,
-    {
+    pub fn render(&self, body: Group) -> Document {
         let a11y_title = Title::new()
             .set("id", "titleId")
             .add(node::Text::new(&self.a11y_title));
@@ -210,7 +206,7 @@ impl Card {
             .set("fill", self.theme.bg.as_ref())
             .set("stroke-opacity", if self.hide_border { 0 } else { 1 });
 
-        let mut g = Group::new().set("data-testid", "main-card-body").set(
+        let body = body.set("data-testid", "main-card-body").set(
             "transform",
             format!(
                 "translate(0, {})",
@@ -221,9 +217,6 @@ impl Card {
                 }
             ),
         );
-        for i in body {
-            g.append(i);
-        }
 
         let document = Document::new()
             .set("width", self.width)
@@ -237,7 +230,7 @@ impl Card {
             .add(style)
             .add(rect)
             .add(self.render_title(icons::Icon::Contribs.svg_path()))
-            .add(g);
+            .add(body);
 
         trace!("{}", document.to_string());
 

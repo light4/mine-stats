@@ -135,5 +135,5 @@ pub fn form_top_langs_card(
         .with_css(css)
         .with_a11y_title(title)
         .build()
-        .render([body])
+        .render(Group::new().add(body))
 }

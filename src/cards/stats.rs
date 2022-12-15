@@ -140,10 +140,7 @@ pub fn form_stats_card(
         stat_items.append(item);
     }
 
-    let body = vec![
-        rank_circle.get_inner().to_owned(),
-        stat_items.get_inner().to_owned(),
-    ];
+    let body = Group::new().add(rank_circle).add(stat_items);
 
     let css = get_styles(&theme, show_icons, (100 - &github.rank.score).into());
     CardBuilder::default()
