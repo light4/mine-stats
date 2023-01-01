@@ -1,4 +1,3 @@
-use chrono::{Datelike, Utc};
 use svg::{
     node::{
         self,
@@ -8,7 +7,7 @@ use svg::{
 };
 
 use super::{flex_layout, icons::*, style::get_styles, CardBuilder};
-use crate::{config::Theme, github::stats::UserGithubStats};
+use crate::{config::Theme, github::stats::UserGithubStats, utils::current_year};
 
 #[derive(Debug, Clone)]
 pub struct StatItem {
@@ -156,11 +155,6 @@ pub fn form_stats_card(
         .with_theme(theme)
         .build()
         .render(body)
-}
-
-#[inline]
-fn current_year() -> i32 {
-    Utc::now().year()
 }
 
 fn get_stat_collections(github: &UserGithubStats) -> Vec<StatItem> {
