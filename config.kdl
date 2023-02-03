@@ -2,5 +2,10 @@
 listen_stack "ipv4"
 listen_port 8080
 
+services {
+    nginx
+    sshd
+}
+
 allow_users "light4"
 github_api_token "YOUR_GITHUB_TOKEN"

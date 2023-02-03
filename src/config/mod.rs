@@ -66,10 +66,17 @@ impl Config {
                 .map(|i| i.as_i64().unwrap() as u16)
                 .unwrap_or(8080),
             services: doc
-                .get_args("services")
-                .into_iter()
-                .map(|i| i.as_string().unwrap().to_owned())
-                .collect(),
+                .get("services")
+                .and_then(|services| {
+                    services.children().map(|children| {
+                        children
+                            .nodes()
+                            .iter()
+                            .map(|i| i.name().value().to_string())
+                            .collect::<Vec<String>>()
+                    })
+                })
+                .unwrap_or_default(),
             github_api_token: doc
                 .get_arg("github_api_token")
                 .and_then(|i| i.as_string())
