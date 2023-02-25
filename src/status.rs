@@ -52,7 +52,7 @@ pub struct Service {
     output: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ServiceStatus {
     Active,
