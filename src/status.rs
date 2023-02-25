@@ -1,6 +1,13 @@
 use askama::Template;
 use tokio::process::Command;
 
+#[derive(Debug, Default)]
+pub struct PkgInfo {
+    name: String,
+    version: String,
+    homepage: String,
+}
+
 #[derive(Debug, Default, Template)]
 #[template(path = "status.html")]
 pub struct Status {
@@ -8,6 +15,7 @@ pub struct Status {
     uname: String,
     uptime: String,
     services: Vec<Service>,
+    pkginfo: PkgInfo,
 }
 
 impl Status {
@@ -36,11 +44,17 @@ impl Status {
             services.push(get_service(s).await);
         }
 
+        let pkginfo = PkgInfo {
+            name: env!("CARGO_PKG_NAME").to_string(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+            homepage: env!("CARGO_PKG_HOMEPAGE").to_string(),
+        };
         Self {
             hostname,
             uname,
             uptime,
             services,
+            pkginfo,
         }
     }
 }

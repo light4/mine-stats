@@ -35,7 +35,7 @@
       }
 
       a {
-        color: #e81c4f;
+        color: darkcyan;
       }
 
       table,
@@ -87,6 +87,10 @@
         <li>Hostname: {{ hostname|e }}</li>
         <li>Uname: {{ uname|e }}</li>
         <li>Uptime: {{ uptime|e }}</li>
+        <li>
+          PkgInfo: {{ pkginfo.name|e }}-v{{ pkginfo.version|e }}
+          <a href="{{ pkginfo.homepage|e }}">{{ pkginfo.homepage|e }}</a>
+        </li>
       </ul>
 
       <h2>Services</h2>

@@ -1,7 +1,9 @@
 [package]
 name = "mine-stats"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
+homepage = "https://github.com/light4/mine-stats"
+authors = ["Light Ning <root@i01.io>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
