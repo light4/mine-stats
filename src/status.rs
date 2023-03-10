@@ -149,7 +149,7 @@ async fn get_service(name: &str) -> Service {
         .output()
         .await;
 
-    match output {
+    let mut result = match output {
         Ok(out) => {
             if out.status.success() {
                 Service {
@@ -161,7 +161,11 @@ async fn get_service(name: &str) -> Service {
                 Service {
                     name: name.into(),
                     status: ServiceStatus::Error,
-                    output: String::from_utf8_lossy(&out.stderr).into(),
+                    output: format!(
+                        "{}\n{}",
+                        String::from_utf8_lossy(&out.stdout),
+                        String::from_utf8_lossy(&out.stderr)
+                    ),
                 }
             }
         }
@@ -170,5 +174,9 @@ async fn get_service(name: &str) -> Service {
             status: ServiceStatus::Unknown,
             output: format!("systemctl status {name} running error: {e:?}"),
         },
-    }
+    };
+
+    // prevent leak private info
+    result.output.truncate(500);
+    result
 }
