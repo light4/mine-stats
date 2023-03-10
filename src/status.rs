@@ -1,43 +1,101 @@
+use std::time::Duration;
+
 use askama::Template;
+use color_eyre::Result;
+use serde::Serialize;
 use tokio::process::Command;
 
-#[derive(Debug, Default)]
+use crate::humantime::HumanTime;
+
+#[derive(Debug, Default, Serialize)]
 pub struct PkgInfo {
-    name: String,
-    version: String,
-    homepage: String,
+    name: &'static str,
+    version: &'static str,
+    homepage: &'static str,
 }
 
-#[derive(Debug, Default, Template)]
+#[derive(Debug, Default, Template, Serialize)]
 #[template(path = "status.html")]
 pub struct Status {
-    hostname: String,
-    uname: String,
-    uptime: String,
+    utsname: MyUtsName,
+    sysinfo: MySysInfo,
     services: Vec<Service>,
     pkginfo: PkgInfo,
 }
 
+#[derive(Debug, Default, Serialize)]
+pub struct MyUtsName {
+    sysname: String,
+    nodename: String,
+    release: String,
+    version: String,
+    machine: String,
+    domainname: String,
+}
+
+impl MyUtsName {
+    pub fn init() -> Result<Self> {
+        let output = nix::sys::utsname::uname()?;
+        Ok(Self {
+            sysname: output.sysname().to_string_lossy().to_string(),
+            nodename: output.nodename().to_string_lossy().to_string(),
+            release: output.release().to_string_lossy().to_string(),
+            version: output.version().to_string_lossy().to_string(),
+            machine: output.machine().to_string_lossy().to_string(),
+            domainname: output.domainname().to_string_lossy().to_string(),
+        })
+    }
+
+    pub fn as_string(&self) -> String {
+        format!(
+            "{} {} {} {} {} {}",
+            self.sysname, self.nodename, self.release, self.version, self.machine, self.domainname
+        )
+    }
+}
+
+#[derive(Debug, Default, Serialize)]
+pub struct MySysInfo {
+    load_average: (f64, f64, f64),
+    uptime: Duration,
+    process_count: u16,
+    swap_total: u64,
+    swap_free: u64,
+    ram_total: u64,
+    ram_unused: u64,
+}
+
+impl MySysInfo {
+    pub fn init() -> Result<Self> {
+        let output = nix::sys::sysinfo::sysinfo()?;
+        Ok(Self {
+            load_average: output.load_average(),
+            uptime: output.uptime(),
+            process_count: output.process_count(),
+            swap_total: output.swap_total(),
+            swap_free: output.swap_free(),
+            ram_total: output.ram_total(),
+            ram_unused: output.ram_unused(),
+        })
+    }
+
+    pub fn uptime_humanize(&self) -> String {
+        let ht = HumanTime::from(self.uptime);
+        format!("{:#}", ht)
+    }
+
+    pub fn load_average_string(&self) -> String {
+        format!(
+            "{:.2} {:.2} {:.2}",
+            self.load_average.0, self.load_average.1, self.load_average.2
+        )
+    }
+}
+
 impl Status {
     pub async fn init(service_names: Vec<String>) -> Self {
-        let hostname = Command::new("hostname")
-            .output()
-            .await
-            .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
-            .unwrap_or_else(|_| "unknown".to_string());
-
-        let uname = Command::new("uname")
-            .arg("-a")
-            .output()
-            .await
-            .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
-            .unwrap_or_else(|_| "unkonwn".to_string());
-
-        let uptime = Command::new("uptime")
-            .output()
-            .await
-            .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
-            .unwrap_or_else(|_| "unknown".to_string());
+        let utsname = MyUtsName::init().unwrap_or_default();
+        let sysinfo = MySysInfo::init().unwrap_or_default();
 
         let mut services = vec![];
         for s in &service_names {
@@ -45,28 +103,28 @@ impl Status {
         }
 
         let pkginfo = PkgInfo {
-            name: env!("CARGO_PKG_NAME").to_string(),
-            version: env!("CARGO_PKG_VERSION").to_string(),
-            homepage: env!("CARGO_PKG_HOMEPAGE").to_string(),
+            name: env!("CARGO_PKG_NAME"),
+            version: env!("CARGO_PKG_VERSION"),
+            homepage: env!("CARGO_PKG_HOMEPAGE"),
         };
         Self {
-            hostname,
-            uname,
-            uptime,
+            utsname,
+            sysinfo,
             services,
             pkginfo,
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Service {
     name: String,
     status: ServiceStatus,
     output: String,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
 #[non_exhaustive]
 pub enum ServiceStatus {
     Active,

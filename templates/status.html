@@ -82,11 +82,21 @@
     <div>
       <h1>Hello there!</h1>
 
-      <h2>Basic Info</h2>
+      <h2>System Info</h2>
       <ul>
-        <li>Hostname: {{ hostname|e }}</li>
-        <li>Uname: {{ uname|e }}</li>
-        <li>Uptime: {{ uptime|e }}</li>
+        <li>Hostname: {{ utsname.nodename|e }}</li>
+        <li>Uname: {{ utsname.as_string()|e }}</li>
+        <li>Load: {{ sysinfo.load_average_string()|e }}</li>
+        <li>Uptime: {{ sysinfo.uptime_humanize()|e }}</li>
+        <li>Process: {{ sysinfo.process_count|e }}</li>
+        <li>
+          Ram: unused {{ sysinfo.ram_unused|filesizeformat }} / total {{
+          sysinfo.ram_total|filesizeformat }}
+        </li>
+        <li>
+          Swap: free {{ sysinfo.swap_free|filesizeformat }} / total {{
+          sysinfo.swap_total|filesizeformat }}
+        </li>
         <li>
           PkgInfo: {{ pkginfo.name|e }}-v{{ pkginfo.version|e }}
           <a href="{{ pkginfo.homepage|e }}">{{ pkginfo.homepage|e }}</a>

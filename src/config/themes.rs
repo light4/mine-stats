@@ -2,7 +2,7 @@
 
 use std::{borrow::Cow, ops::Deref, path::Path};
 
-use anyhow::Result;
+use color_eyre::Result;
 use kdl::{KdlDocument, KdlNode};
 use serde::{Deserialize, Serialize};
 use tokio::fs::read_to_string;

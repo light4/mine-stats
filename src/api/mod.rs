@@ -6,7 +6,6 @@ use std::{
     task::{Context, Poll},
 };
 
-use anyhow::Result;
 use askama::Template;
 use axum::{
     extract::FromRef,
@@ -15,6 +14,7 @@ use axum::{
     routing::get,
     Router,
 };
+use color_eyre::Result;
 use hyper::server::{accept::Accept, conn::AddrIncoming};
 use tracing::info;
 
@@ -53,6 +53,7 @@ pub async fn run(config: Config, themes: Themes) {
     };
     // build our application with a route
     let app = Router::new()
+        .route("/api/v1/status", get(status::get_status_json))
         .route("/status", get(status::get_status))
         .route("/ip", get(ip::get_ip))
         .route("/themes", get(themes::list_themes_api))

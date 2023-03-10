@@ -1,4 +1,4 @@
-use anyhow::Result;
+use color_eyre::Result;
 
 pub mod gen;
 pub mod stats;

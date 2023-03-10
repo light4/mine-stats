@@ -1,5 +1,5 @@
-use anyhow::Result;
 use bincode::{Decode, Encode};
+use color_eyre::Result;
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::Client;
 use tracing::trace;

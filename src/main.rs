@@ -1,4 +1,4 @@
-use anyhow::Result;
+use color_eyre::Result;
 use mine_stats::{
     api,
     config::{Config, Themes},
@@ -8,6 +8,8 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
+    color_eyre::install()?;
+
     let config_path = std::env::args().nth(1).unwrap_or_default();
     let config_file = format!("{config_path}config.kdl");
     let themes_file = format!("{config_path}themes.kdl");

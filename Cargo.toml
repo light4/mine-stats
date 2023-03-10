@@ -8,14 +8,15 @@ authors = ["Light Ning <root@i01.io>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0"
 askama = "0.12"
 axum = { version = "0.6", features = ["headers", "http2", "macros"] }
 bincode = "2.0.0-rc.2"
 chrono = { version = "0.4", default-features = false, features = ["std"] }
+color-eyre = "0.6"
 graphql_client = "0.12"
 hyper = "0.14"
 kdl = "4.6"
+nix = "0.26"
 once_cell = "1.17"
 reqwest = { version = "0.11", default-features = false, features = [
     "rustls-tls",

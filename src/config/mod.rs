@@ -2,7 +2,7 @@
 
 use std::{fmt, path::Path};
 
-use anyhow::Result;
+use color_eyre::Result;
 use kdl::KdlDocument;
 use tokio::fs::read_to_string;
 

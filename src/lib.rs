@@ -12,5 +12,6 @@ mod cards;
 pub mod config;
 mod error;
 mod github;
+mod humantime;
 mod status;
 mod utils;
