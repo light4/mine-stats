@@ -1,10 +1,6 @@
 //! contains all api services
 
-use std::{
-    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
-    pin::Pin,
-    task::{Context, Poll},
-};
+use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use askama::Template;
 use axum::{
@@ -14,8 +10,7 @@ use axum::{
     routing::get,
     Router,
 };
-use color_eyre::Result;
-use hyper::server::{accept::Accept, conn::AddrIncoming};
+use tokio::net::TcpListener;
 use tracing::info;
 
 mod cache;
@@ -39,10 +34,7 @@ struct AppState {
 
 pub async fn run(config: Config, themes: Themes) {
     let localhost_v4 = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), config.listen_port);
-    let incoming_v4 = AddrIncoming::bind(&localhost_v4).unwrap();
-
-    let localhost_v6 = SocketAddr::new(Ipv6Addr::LOCALHOST.into(), config.listen_port);
-    let incoming_v6 = AddrIncoming::bind(&localhost_v6).unwrap();
+    let localhost_v6 = SocketAddr::new(Ipv6Addr::UNSPECIFIED.into(), config.listen_port);
 
     let listen_stack = &config.listen_stack.clone();
 
@@ -62,37 +54,39 @@ pub async fn run(config: Config, themes: Themes) {
         .route("/cache/keys", get(cache::list_keys_api))
         // add a fallback service for handling routes to unknown paths
         .fallback(handler_404)
-        .with_state(app_state);
+        .with_state(app_state)
+        .layer(tower_http::limit::RequestBodyLimitLayer::new(1024));
 
     // run it
     if let ListenStack::Both = listen_stack {
         info!("listening v4 on http://{}", &localhost_v4);
         info!("listening v6 on http://{}", &localhost_v6);
-        let combined = CombinedIncoming {
-            a: incoming_v4,
-            b: incoming_v6,
-        };
-        axum::Server::builder(combined)
-            .serve(app.into_make_service_with_connect_info::<SocketAddr>())
-            .await
-            .unwrap();
+        let incoming_v6 = TcpListener::bind(localhost_v6).await.unwrap();
+        axum::serve(
+            incoming_v6,
+            app.into_make_service_with_connect_info::<SocketAddr>(),
+        )
+        .await
+        .unwrap();
     } else {
         let incoming = match listen_stack {
             ListenStack::V4 => {
                 info!("listening v4 on http://{}", &localhost_v4);
-                incoming_v4
+                TcpListener::bind(localhost_v4).await.unwrap()
             }
             ListenStack::V6 => {
                 info!("listening v6 on http://{}", &localhost_v6);
-                incoming_v6
+                TcpListener::bind(localhost_v6).await.unwrap()
             }
             _ => unreachable!(),
         };
 
-        axum::Server::builder(incoming)
-            .serve(app.into_make_service_with_connect_info::<SocketAddr>())
-            .await
-            .unwrap();
+        axum::serve(
+            incoming,
+            app.into_make_service_with_connect_info::<SocketAddr>(),
+        )
+        .await
+        .unwrap();
     }
 }
 
@@ -116,29 +110,4 @@ where
 
 async fn handler_404() -> impl IntoResponse {
     (StatusCode::NOT_FOUND, "nothing to see here")
-}
-
-struct CombinedIncoming {
-    a: AddrIncoming,
-    b: AddrIncoming,
-}
-
-impl Accept for CombinedIncoming {
-    type Conn = <AddrIncoming as Accept>::Conn;
-    type Error = <AddrIncoming as Accept>::Error;
-
-    fn poll_accept(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Option<Result<Self::Conn, Self::Error>>> {
-        if let Poll::Ready(Some(value)) = Pin::new(&mut self.a).poll_accept(cx) {
-            return Poll::Ready(Some(value));
-        }
-
-        if let Poll::Ready(Some(value)) = Pin::new(&mut self.b).poll_accept(cx) {
-            return Poll::Ready(Some(value));
-        }
-
-        Poll::Pending
-    }
 }
